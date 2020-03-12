@@ -69,7 +69,6 @@ public class YLockControl extends RigidBodyControl implements PhysicsTickListene
         setPhysicsLocation(translationVector);
         setAngularVelocity(angularVelocityVector);
         
-        System.out.println("tick");
     }
 
 //    @Override
