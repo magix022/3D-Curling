@@ -125,7 +125,7 @@ public class Main extends SimpleApplication {
         bulletAppState.getPhysicsSpace().add(sceneGeo);
         bulletAppState.getPhysicsSpace().add(floorControl);
         
-//        bulletAppState.getPhysicsSpace().setGravity(new Vector3f(0, 0, 0));
+        bulletAppState.getPhysicsSpace().setGravity(new Vector3f(0, 0, 0));
 
         flyCam.setMoveSpeed(50f);
 //        cam.setLocation(camPos);
@@ -164,6 +164,9 @@ public class Main extends SimpleApplication {
         
         cylinderPhy1.prePhysicsTick(bulletAppState.getPhysicsSpace(), tpf);
         cylinderPhy2.prePhysicsTick(bulletAppState.getPhysicsSpace(), tpf);
+        
+        cylinderPhy1.physicsTick(bulletAppState.getPhysicsSpace(), tpf);
+        cylinderPhy1.physicsTick(bulletAppState.getPhysicsSpace(), tpf);
         
         
 

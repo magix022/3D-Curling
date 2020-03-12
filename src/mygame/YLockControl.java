@@ -33,8 +33,13 @@ public class YLockControl extends RigidBodyControl implements PhysicsTickListene
         super(mass);
     }
     
+    public float yLocation;
+    
     @Override
     public void prePhysicsTick(PhysicsSpace space, float f){
+        
+        yLocation = getPhysicsLocation().y;
+        
         Vector3f linearVelocityVector = getLinearVelocity();
 
         Vector3f angularVelocityVector = getAngularVelocity();
@@ -52,6 +57,18 @@ public class YLockControl extends RigidBodyControl implements PhysicsTickListene
     
     @Override
     public void physicsTick(PhysicsSpace space, float f){
+        
+        Vector3f translationVector = getPhysicsLocation();
+        Vector3f angularVelocityVector = getAngularVelocity();
+        
+        translationVector.y = yLocation;
+        
+        angularVelocityVector.x = 0;
+        angularVelocityVector.z = 0;
+                
+        setPhysicsLocation(translationVector);
+        setAngularVelocity(angularVelocityVector);
+        
         System.out.println("tick");
     }
 
