@@ -39,167 +39,162 @@ public class Main extends SimpleApplication {
 	private Spatial cylinder2;
 	private YLockControl cylinderPhy1;
 	private YLockControl cylinderPhy2;
+        private Spatial rock;
+        private YLockControl rockPhy;
+        private Spatial rock2;
+        private YLockControl rockPhy2;
 
     public static void main(String[] args) {
         Main app = new Main();
         app.start();
     }
+    
+    
 
-    @Override
-    public void simpleInitApp() {
-        bulletAppState = new BulletAppState();
-        stateManager.attach(bulletAppState);
+        @Override
+        public void simpleInitApp() {
+            bulletAppState = new BulletAppState();
+            stateManager.attach(bulletAppState);
 
-        Spatial floorScene = assetManager.loadModel("Scenes/ARENA.j3o");
-        RigidBodyControl sceneGeo = new RigidBodyControl(0f);
-        floorScene.setLocalTranslation(Vector3f.ZERO);
-        floorScene.addControl(sceneGeo);
-        sceneGeo.setPhysicsLocation(floorScene.getLocalTranslation());
-        
+            Spatial floorScene = assetManager.loadModel("Scenes/ARENA.j3o");
+            RigidBodyControl sceneGeo = new RigidBodyControl(0f);
+            floorScene.setLocalTranslation(Vector3f.ZERO);
+            floorScene.addControl(sceneGeo);
+            sceneGeo.setPhysicsLocation(floorScene.getLocalTranslation());
 
-        inputManager.addMapping("throw", new MouseButtonTrigger(MouseInput.BUTTON_LEFT));
-        inputManager.addMapping("reset", new MouseButtonTrigger(MouseInput.BUTTON_RIGHT));
 
-        Node sceneNode = (Node)floorScene;
-        originRockPos = sceneNode.getChild("Origin").getLocalTranslation();
-        camView = sceneNode.getChild("camView").getLocalTranslation();
-//        camPos = sceneNode.getChild("camPos").getLocalTranslation();
-        
-        Spatial rigidFloor = sceneNode.getChild("RigidFloor");
-        
+            inputManager.addMapping("throw", new MouseButtonTrigger(MouseInput.BUTTON_LEFT));
+            inputManager.addMapping("reset", new MouseButtonTrigger(MouseInput.BUTTON_RIGHT));
 
-        cylinder1 = assetManager.loadModel("Models/RockCylinder.glb");
-        cylinder2 = assetManager.loadModel("Models/RockCylinder.glb");
-        
-        cylinder1.setLocalScale(3);
-        cylinder2.setLocalScale(3);
+            Node sceneNode = (Node)floorScene;
+            originRockPos = sceneNode.getChild("Origin").getLocalTranslation();
+            camView = sceneNode.getChild("camView").getLocalTranslation();
+    //        camPos = sceneNode.getChild("camPos").getLocalTranslation();
 
-        Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        mat.setTexture("ColorMap", assetManager.loadTexture("Textures/dirt.jpg"));
-        
-        Material transMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        transMat.setColor("Color", new ColorRGBA(1, 0, 0, 0f));
-        transMat.getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
-        
-        rigidFloor.setQueueBucket(Bucket.Translucent);
-        
-        rigidFloor.setMaterial(transMat);
-        
-        RigidBodyControl floorControl = new RigidBodyControl(0);
-        floorControl.setSpatial(rigidFloor);
-        rigidFloor.addControl(floorControl);
-        
-        
-        
+            Spatial rigidFloor = sceneNode.getChild("RigidFloor");
+
+            rock = new Rock(1);
+            rock = assetManager.loadModel(((Rock)rock).getModelPath());
+            
+            rootNode.attachChild(rock);
+            rock.setLocalTranslation(originRockPos.add(0, 3, 0));
+//            rock.setLocalScale(2);
+            
+            rockPhy = new YLockControl(1f);
+            rock.addControl(rockPhy);
+
+            rock2 = new Rock(1);
+            rock2 = assetManager.loadModel(((Rock)rock2).getModelPath());
+            
+            rootNode.attachChild(rock2);
+            rock2.setLocalTranslation(originRockPos.add(-100.0f, 3, 0));
+//            rock2.setLocalScale(2);
 
         
+            rockPhy2 = new YLockControl(1f);
+            rock2.addControl(rockPhy2);
+
+
+
+
+            Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+            mat.setTexture("ColorMap", assetManager.loadTexture("Textures/dirt.jpg"));
+
+            Material transMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+            transMat.setColor("Color", new ColorRGBA(1, 0, 0, 0f));
+            transMat.getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
+
+            rigidFloor.setQueueBucket(Bucket.Translucent);
+
+            rigidFloor.setMaterial(transMat);
+
+            RigidBodyControl floorControl = new RigidBodyControl(0);
+            floorControl.setSpatial(rigidFloor);
+            rigidFloor.addControl(floorControl);
+
+
+
+
+
+
+
+            rock.setMaterial(mat);
+            rock2.setMaterial(mat);
+
+
+            rootNode.attachChild(floorScene);
+
+            bulletAppState.getPhysicsSpace().add(sceneGeo);
+            bulletAppState.getPhysicsSpace().add(floorControl);
+            bulletAppState.getPhysicsSpace().add(rockPhy);
+            bulletAppState.getPhysicsSpace().add(rockPhy2);
+
+            bulletAppState.getPhysicsSpace().setGravity(new Vector3f(0, 0, 0));
+
+            flyCam.setMoveSpeed(50f);
+    //        cam.setLocation(camPos);
+            cam.lookAtDirection(camView, new Vector3f(0, 1, 0));
+        }
+
+        private ActionListener actionListenerThrow = new ActionListener(){
+            public void onAction(String name, boolean keyPressed, float tpf){
+                    if(name.equals("throw") && !keyPressed){
+                            throwRock();
+                    }
+                    if(name.equals("reset")){
+                            resetPos(rock, originRockPos, rockPhy);
+                            resetPos(rock2, originRockPos.add(-100.0f, 0, 0), rockPhy2);
+                    }
+            }
+        };
+
+            public void throwRock(){
+                rockPhy.setLinearVelocity(new Vector3f(-1, 0, 0).mult(50f));
+            }
+
+            public void resetPos(Spatial s, Vector3f origin, RigidBodyControl phy){
+                try{
+                    phy.setEnabled(paused);
+                    s.setLocalTranslation(origin);
+                    phy.setLinearVelocity(Vector3f.ZERO);
+                    phy.setAngularVelocity(Vector3f.ZERO);
+                    phy.setEnabled(true);
+                }
+                catch(NullPointerException e){
+                    System.out.print("null");
+                }
+            }
+
+
+        @Override
+        public void simpleUpdate(float tpf) {
+    //listener for the left and right click action
+            inputManager.addListener(actionListenerThrow, "throw");
+            inputManager.addListener(actionListenerThrow, "reset");
+
+    //method that sets linera velocity and angular velocity in unwanted axis to 0        
+            rockPhy.prePhysicsTick(bulletAppState.getPhysicsSpace(), tpf);
+            rockPhy2.prePhysicsTick(bulletAppState.getPhysicsSpace(), tpf);
+
+    //fix the position to original value in case of difference        
+            rockPhy.physicsTick(bulletAppState.getPhysicsSpace(), tpf);
+            rockPhy2.physicsTick(bulletAppState.getPhysicsSpace(), tpf);
+
+
+
+
+
+
+
+
+
+
+        }
+
+        @Override
+        public void simpleRender(RenderManager rm) {
+            //TODO: add render code
+        }
         
-
-        cylinder1.setMaterial(mat);
-        cylinder2.setMaterial(mat);
-
-
-        rootNode.attachChild(floorScene);
-        rootNode.attachChild(cylinder1);
-        rootNode.attachChild(cylinder2);
-
-        cylinder1.setLocalTranslation(originRockPos.add(0, 3, 0));
-        cylinder2.setLocalTranslation(originRockPos.add(-100.0f, 3, 0));
-        
-        
-
-        cylinderPhy1 = new YLockControl(1f);
-        cylinderPhy2 = new YLockControl(1f);
-        
-        
-        
-
-        cylinder1.addControl(cylinderPhy1);
-        cylinder2.addControl(cylinderPhy2);
-        
-//        cylinderPhy1.setGravity(new Vector3f(0, -10f, 0));
-
-
-        bulletAppState.getPhysicsSpace().add(cylinderPhy1);
-        bulletAppState.getPhysicsSpace().add(cylinderPhy2);
-        bulletAppState.getPhysicsSpace().add(sceneGeo);
-        bulletAppState.getPhysicsSpace().add(floorControl);
-        
-        bulletAppState.getPhysicsSpace().setGravity(new Vector3f(0, 0, 0));
-
-        flyCam.setMoveSpeed(50f);
-//        cam.setLocation(camPos);
-        cam.lookAtDirection(camView, new Vector3f(0, 1, 0));
-    }
-
-    private ActionListener actionListenerThrow = new ActionListener(){
-    	public void onAction(String name, boolean keyPressed, float tpf){
-    		if(name.equals("throw") && !keyPressed){
-    			throwRock();
-    		}
-    		if(name.equals("reset")){
-    			resetPos(cylinder1, originRockPos, cylinderPhy1);
-    			resetPos(cylinder2, originRockPos.add(-100.0f, 0, 0), cylinderPhy2);
-    		}
-    	}
-    };
-
-    public void throwRock(){
-    	cylinderPhy1.setLinearVelocity(new Vector3f(-1, 0, 0).mult(50f));
-    }
-
-    public void resetPos(Spatial s, Vector3f origin, RigidBodyControl phy){
-    	phy.setEnabled(paused);
-    	s.setLocalTranslation(origin);
-    	phy.setLinearVelocity(Vector3f.ZERO);
-        phy.setAngularVelocity(Vector3f.ZERO);
-    	phy.setEnabled(true);
-    }
-
-    @Override
-    public void simpleUpdate(float tpf) {
-
-    	inputManager.addListener(actionListenerThrow, "throw");
-    	inputManager.addListener(actionListenerThrow, "reset");
-        
-        cylinderPhy1.prePhysicsTick(bulletAppState.getPhysicsSpace(), tpf);
-        cylinderPhy2.prePhysicsTick(bulletAppState.getPhysicsSpace(), tpf);
-        
-        cylinderPhy1.physicsTick(bulletAppState.getPhysicsSpace(), tpf);
-        cylinderPhy1.physicsTick(bulletAppState.getPhysicsSpace(), tpf);
-        
-        
-
-
-//    	Vector3f linearVelocityVector1 = cylinderPhy1.getLinearVelocity();
-//    	Vector3f linearVelocityVector2 = cylinderPhy2.getLinearVelocity();
-//
-//    	Vector3f angularVelocityVector1 = cylinderPhy1.getAngularVelocity();
-//    	Vector3f angularVelocityVector2 = cylinderPhy2.getAngularVelocity();
-////
-//    	linearVelocityVector1.y = 0;
-//    	linearVelocityVector2.y = 0;
-
-//        cylinderPhy1.getPhysicsLocation().multLocal(1, 0, 1);
-        
-        
-
-//    	angularVelocityVector1.x = 0;
-//        angularVelocityVector1.y = 0;
-//    	angularVelocityVector1.z = 0;
-//    	angularVelocityVector2.x = 0;
-//        angularVelocityVector2.y = 0;
-//    	angularVelocityVector2.z = 0;
-//
-//    	cylinderPhy1.setLinearVelocity(linearVelocityVector1);
-//    	cylinderPhy2.setLinearVelocity(linearVelocityVector2);
-
-//    	cylinderPhy1.setAngularVelocity(Vector3f.ZERO);
-//    	cylinderPhy2.setAngularVelocity(Vector3f.ZERO);
-    }
-
-    @Override
-    public void simpleRender(RenderManager rm) {
-        //TODO: add render code
-    }
 }
+

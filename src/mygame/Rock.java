@@ -25,80 +25,94 @@ import com.jme3.scene.Node;
  *
  * @author emile
  */
-public class Rock{
+public class Rock extends Spatial{
     
-    private double speedX;
-    private double speedZ;
-    private float positionX;
-    private float positionZ;
-    private double accelerationX;
-    private double accelerationZ;
+//    private float speedX;
+//    private float speedZ;
+//    private float positionX;
+//    private float positionZ;
+    private float accelerationX;
+    private float accelerationZ;
     
     private int team;
     
     private String modelPath;
     
-    private YLockControl yLockControl;
+//    private YLockControl yLockControl;
     
     private CollisionShape rockCollisionShape;
     
     private Spatial rockModel;
     
     public Rock(int team){
+        super();
         this.team = team;
+//        this.yLockControl = new YLockControl(1);
         if(team == 1){
-            modelPath = "Models/Rock_Model.j3o";
+            modelPath = "Models/RockCylinder.glb";
+            
         }
         else
-            modelPath = "Models/Rock_Model.j3o";
-        yLockControl = new YLockControl(1f);
+            modelPath = "Models/RockCylinder.glb";
+//        yLockControl = new YLockControl(1f);
         
         
     }
     
+//    public void updateFields(){
+//        speedX = yLockControl.getLinearVelocity().x;
+//        speedZ = yLockControl.getLinearVelocity().z;
+//        positionX = yLockControl.getPhysicsLocation().x;
+//        positionZ = yLockControl.getPhysicsLocation().z;
+//    }
+    
+    public void accelerationEffect(){
+        
+    }
     
     
     
     
     
-
-    public double getSpeedX() {
-        return speedX;
-    }
-
-    public void setSpeedX(double speedX) {
-        this.speedX = speedX;
-    }
-
-    public double getSpeedZ() {
-        return speedZ;
-    }
-
-    public void setSpeedZ(double speedZ) {
-        this.speedZ = speedZ;
-    }
-
-    public float getPositionX() {
-        return positionX;
-    }
-
-    public void setPositionX(float positionX) {
-        this.positionX = positionX;
-    }
-
-    public float getPositionZ() {
-        return positionZ;
-    }
-
-    public void setPositionZ(float positionZ) {
-        this.positionZ = positionZ;
-    }
+    
+//
+//    public double getSpeedX() {
+//        return speedX;
+//    }
+//
+//    public void setSpeedX(float speedX) {
+//        this.speedX = speedX;
+//    }
+//
+//    public double getSpeedZ() {
+//        return speedZ;
+//    }
+//
+//    public void setSpeedZ(float speedZ) {
+//        this.speedZ = speedZ;
+//    }
+//
+//    public float getPositionX() {
+//        return positionX;
+//    }
+//
+//    public void setPositionX(float positionX) {
+//        this.positionX = positionX;
+//    }
+//
+//    public float getPositionZ() {
+//        return positionZ;
+//    }
+//
+//    public void setPositionZ(float positionZ) {
+//        this.positionZ = positionZ;
+//    }
 
     public double getAccelerationX() {
         return accelerationX;
     }
 
-    public void setAccelerationX(double accelerationX) {
+    public void setAccelerationX(float accelerationX) {
         this.accelerationX = accelerationX;
     }
 
@@ -106,7 +120,7 @@ public class Rock{
         return accelerationZ;
     }
 
-    public void setAccelerationZ(double accelerationZ) {
+    public void setAccelerationZ(float accelerationZ) {
         this.accelerationZ = accelerationZ;
     }
 
@@ -126,13 +140,13 @@ public class Rock{
         this.rockModel = rockModel;
     }
     
-    public RigidBodyControl getRigidBodyControl(){
-        return yLockControl;
-    }
-    
-    public void setRigidBodyControl(YLockControl r){
-        yLockControl = r;
-    }
+//    public YLockControl getRigidBodyControl(){
+//        return yLockControl;
+//    }
+//    
+//    public void setRigidBodyControl(YLockControl r){
+//        yLockControl = r;
+//    }
     
     public CollisionShape getCollisionShape(){
         return rockCollisionShape;
@@ -140,6 +154,41 @@ public class Rock{
     
     public void setCollisionShape(CollisionShape c){
         rockCollisionShape = c;
+    }
+
+    @Override
+    public void updateModelBound() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void setModelBound(BoundingVolume modelBound) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public int getVertexCount() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public int getTriangleCount() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void depthFirstTraversal(SceneGraphVisitor visitor, DFSMode mode) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    protected void breadthFirstTraversal(SceneGraphVisitor visitor, Queue<Spatial> queue) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public int collideWith(Collidable other, CollisionResults results) throws UnsupportedCollisionException {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
 
