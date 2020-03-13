@@ -35,6 +35,7 @@ public class Main extends SimpleApplication {
 	private Vector3f camPos;
 	private Vector3f camView;
 	private Vector3f originRockPos;
+        private Vector3f centerPos;
 	private Spatial cylinder1;
 	private Spatial cylinder2;
 	private YLockControl cylinderPhy1;
@@ -69,6 +70,7 @@ public class Main extends SimpleApplication {
             Node sceneNode = (Node)floorScene;
             originRockPos = sceneNode.getChild("Origin").getLocalTranslation();
             camView = sceneNode.getChild("camView").getLocalTranslation();
+            centerPos = sceneNode.getChild("Center").getLocalTranslation();
     //        camPos = sceneNode.getChild("camPos").getLocalTranslation();
 
             Spatial rigidFloor = sceneNode.getChild("RigidFloor");
@@ -120,6 +122,8 @@ public class Main extends SimpleApplication {
 
             rock.setMaterial(mat);
             rock2.setMaterial(mat);
+            
+            
 
 
             rootNode.attachChild(floorScene);
