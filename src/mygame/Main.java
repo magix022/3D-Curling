@@ -59,6 +59,7 @@ public class Main extends SimpleApplication {
 
             Spatial floorScene = assetManager.loadModel("Scenes/ARENA.j3o");
             RigidBodyControl sceneGeo = new RigidBodyControl(0f);
+//            sceneGeo.setKinematic(false);
             floorScene.setLocalTranslation(Vector3f.ZERO);
             floorScene.addControl(sceneGeo);
             sceneGeo.setPhysicsLocation(floorScene.getLocalTranslation());
@@ -68,7 +69,7 @@ public class Main extends SimpleApplication {
             inputManager.addMapping("reset", new MouseButtonTrigger(MouseInput.BUTTON_RIGHT));
 
             Node sceneNode = (Node)floorScene;
-            originRockPos = sceneNode.getChild("Origin").getLocalTranslation();
+            originRockPos = (sceneNode.getChild("Origin").getLocalTranslation()).add(0, 3, 0);
             camView = sceneNode.getChild("camView").getLocalTranslation();
             centerPos = sceneNode.getChild("Center").getLocalTranslation();
     //        camPos = sceneNode.getChild("camPos").getLocalTranslation();
@@ -79,22 +80,26 @@ public class Main extends SimpleApplication {
             rock = assetManager.loadModel(((Rock)rock).getModelPath());
             
             rootNode.attachChild(rock);
-            rock.setLocalTranslation(originRockPos.add(0, 3, 0));
+            rock.setLocalTranslation(originRockPos);
 //            rock.setLocalScale(2);
             
             rockPhy = new YLockControl(1f);
             rock.addControl(rockPhy);
+            
+
 
             rock2 = new Rock(1);
             rock2 = assetManager.loadModel(((Rock)rock2).getModelPath());
             
             rootNode.attachChild(rock2);
-            rock2.setLocalTranslation(originRockPos.add(-100.0f, 3, 0));
+            rock2.setLocalTranslation(originRockPos.add(-100.0f, 0, 0));
 //            rock2.setLocalScale(2);
 
         
             rockPhy2 = new YLockControl(1f);
             rock2.addControl(rockPhy2);
+            
+            
 
 
 
@@ -160,6 +165,7 @@ public class Main extends SimpleApplication {
                 try{
                     phy.setEnabled(paused);
                     s.setLocalTranslation(origin);
+                    phy.setAngularFactor(0);
                     phy.setLinearVelocity(Vector3f.ZERO);
                     phy.setAngularVelocity(Vector3f.ZERO);
                     phy.setEnabled(true);
@@ -179,10 +185,13 @@ public class Main extends SimpleApplication {
     //method that sets linera velocity and angular velocity in unwanted axis to 0        
             rockPhy.prePhysicsTick(bulletAppState.getPhysicsSpace(), tpf);
             rockPhy2.prePhysicsTick(bulletAppState.getPhysicsSpace(), tpf);
+            
+            rockPhy.physicsTick(bulletAppState.getPhysicsSpace(), tpf);
+            rockPhy.physicsTick(bulletAppState.getPhysicsSpace(), tpf);
 
     //fix the position to original value in case of difference        
-            rockPhy.physicsTick(bulletAppState.getPhysicsSpace(), tpf);
-            rockPhy2.physicsTick(bulletAppState.getPhysicsSpace(), tpf);
+            rockPhy.controlUpdate(tpf, originRockPos.getY());
+            rockPhy2.controlUpdate(tpf, originRockPos.getY());
 
 
 

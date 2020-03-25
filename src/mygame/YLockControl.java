@@ -34,24 +34,26 @@ public class YLockControl extends RigidBodyControl implements PhysicsTickListene
     }
     
     public float yLocation;
-    
     @Override
     public void prePhysicsTick(PhysicsSpace space, float f){
         
-        yLocation = getPhysicsLocation().y;
+        yLocation = this.getPhysicsLocation().getY();
         
         Vector3f linearVelocityVector = getLinearVelocity();
-
+        Vector3f translationVector = getPhysicsLocation();
         Vector3f angularVelocityVector = getAngularVelocity();
 
         linearVelocityVector.y = 0;
 
         angularVelocityVector.x = 0;
-
         angularVelocityVector.z = 0;
+        
+//        translationVector.y = yLocation;
+        
+        
 
         setLinearVelocity(linearVelocityVector);
-
+//        setPhysicsLocation(translationVector);
         setAngularVelocity(angularVelocityVector);
     }
     
@@ -61,21 +63,23 @@ public class YLockControl extends RigidBodyControl implements PhysicsTickListene
         Vector3f translationVector = getPhysicsLocation();
         Vector3f angularVelocityVector = getAngularVelocity();
         
-        translationVector.y = yLocation;
+//        translationVector.y = yLocation;
         
         angularVelocityVector.x = 0;
         angularVelocityVector.z = 0;
                 
         setPhysicsLocation(translationVector);
         setAngularVelocity(angularVelocityVector);
-        
-    }
+      }
 
-//    @Override
-//    protected void controlUpdate(float tpf) {
-//        //TODO: add code that controls Spatial,
-//        //e.g. spatial.rotate(tpf,tpf,tpf);
-//    }
+    
+    protected void controlUpdate(float tpf, float yLocation) {
+        Vector3f translationVector = this.getPhysicsLocation();
+        translationVector.y = yLocation;
+        this.setAngularFactor(Vector3f.ZERO);
+        this.setPhysicsLocation(translationVector);
+        this.setLinearVelocity(getLinearVelocity().mult(0.99995f));
+    }
 //    
 //    @Override
 //    protected void controlRender(RenderManager rm, ViewPort vp) {
