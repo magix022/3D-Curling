@@ -63,10 +63,15 @@ public class Main extends SimpleApplication {
             floorScene.setLocalTranslation(Vector3f.ZERO);
             floorScene.addControl(sceneGeo);
             sceneGeo.setPhysicsLocation(floorScene.getLocalTranslation());
+            sceneGeo.setKinematicSpatial(false);
+            
+            //bounce
+            sceneGeo.setRestitution(1f);
 
 
             inputManager.addMapping("throw", new MouseButtonTrigger(MouseInput.BUTTON_LEFT));
             inputManager.addMapping("reset", new MouseButtonTrigger(MouseInput.BUTTON_RIGHT));
+            
 
             Node sceneNode = (Node)floorScene;
             originRockPos = (sceneNode.getChild("Origin").getLocalTranslation()).add(0, 3, 0);
@@ -80,12 +85,14 @@ public class Main extends SimpleApplication {
             rock = assetManager.loadModel(((Rock)rock).getModelPath());
             
             rootNode.attachChild(rock);
-            rock.setLocalTranslation(originRockPos);
+            rock.setLocalTranslation(originRockPos.add(0,0,20f));
 //            rock.setLocalScale(2);
             
             rockPhy = new YLockControl(1f);
             rock.addControl(rockPhy);
-            
+            //add bounce
+            rockPhy.setRestitution(1f);
+
 
 
             rock2 = new Rock(1);
@@ -98,6 +105,9 @@ public class Main extends SimpleApplication {
         
             rockPhy2 = new YLockControl(1f);
             rock2.addControl(rockPhy2);
+            
+            //add bounce
+            rockPhy2.setRestitution(1f);
             
             
 
@@ -158,7 +168,7 @@ public class Main extends SimpleApplication {
         };
 
             public void throwRock(){
-                rockPhy.setLinearVelocity(new Vector3f(-1, 0, 0).mult(50f));
+                rockPhy.setLinearVelocity(new Vector3f(-1, 0, 1).mult(50f));
             }
 
             public void resetPos(Spatial s, Vector3f origin, RigidBodyControl phy){

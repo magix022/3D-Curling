@@ -33,6 +33,8 @@ public class YLockControl extends RigidBodyControl implements PhysicsTickListene
         super(mass);
     }
     
+    private float accelerationFactor = 4f;
+    
     public float yLocation;
     @Override
     public void prePhysicsTick(PhysicsSpace space, float f){
@@ -78,7 +80,50 @@ public class YLockControl extends RigidBodyControl implements PhysicsTickListene
         translationVector.y = yLocation;
         this.setAngularFactor(Vector3f.ZERO);
         this.setPhysicsLocation(translationVector);
-        this.setLinearVelocity(getLinearVelocity().mult(0.99995f));
+        
+//        if(getLinearVelocity().length() != 0){
+//            System.out.println("x");
+//            setLinearVelocity(getLinearVelocity().add(getLinearVelocity().negate().mult(0.000001f)));
+//        }
+        
+        
+        //acceleration for x 
+        if(getLinearVelocity().x != 0){
+            if(getLinearVelocity().x > 0){
+                setLinearVelocity(getLinearVelocity().subtract(tpf*accelerationFactor, 0, 0));
+            }
+            else{
+                            System.out.println("x");
+                setLinearVelocity(getLinearVelocity().add(tpf*accelerationFactor, 0, 0));
+            }
+        }
+//        else{
+//            getLinearVelocity().x = 0;
+//        }
+        
+
+        //acceleration for z
+        if(getLinearVelocity().z != 0){
+            if(getLinearVelocity().z > 0){
+                setLinearVelocity(getLinearVelocity().subtract(0, 0, tpf*accelerationFactor));
+            }
+            else{
+                setLinearVelocity(getLinearVelocity().add(0, 0, tpf*accelerationFactor));
+            }
+        }
+//        else{
+//            getLinearVelocity().z = 0;
+//        }
+        
+        
+    }
+    
+    public float getAcceleration(){
+        return accelerationFactor;
+    }
+    
+    public void setAccelerationFactor(float a){
+        accelerationFactor = a;
     }
 //    
 //    @Override
