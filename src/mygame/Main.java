@@ -13,8 +13,10 @@ import com.jme3.bullet.collision.shapes.CylinderCollisionShape;
 import com.jme3.bullet.collision.shapes.MeshCollisionShape;
 import com.jme3.bullet.control.GhostControl;
 import com.jme3.bullet.control.RigidBodyControl;
+import com.jme3.input.KeyInput;
 import com.jme3.input.MouseInput;
 import com.jme3.input.controls.ActionListener;
+import com.jme3.input.controls.KeyTrigger;
 import com.jme3.input.controls.MouseButtonTrigger;
 import com.jme3.light.DirectionalLight;
 import com.jme3.material.RenderState;
@@ -78,6 +80,9 @@ public class Main extends SimpleApplication {
 
     //ArrayList of shotDone to add elements at the end of the array and check if a particular rock is thrown
     ArrayList<Boolean> shotDone = new ArrayList(Arrays.asList(new Boolean[8]));
+    
+    private float shotX = 0;
+    private float shotY = 0;
 
     public static void main(String[] args) {
         Main app = new Main();
@@ -101,6 +106,10 @@ public class Main extends SimpleApplication {
         //creation of command mapping
         inputManager.addMapping("throw", new MouseButtonTrigger(MouseInput.BUTTON_LEFT));
         inputManager.addMapping("stop", new MouseButtonTrigger(MouseInput.BUTTON_RIGHT));
+        inputManager.addMapping("get", new KeyTrigger(KeyInput.KEY_F));
+        inputManager.setMouseCursor(null);
+        inputManager.setCursorVisible(true);
+           
 
         //creation of cylinder node for detection of collision inside house
         float cylinderRadius = centerPos.distance(extremity);
@@ -127,8 +136,10 @@ public class Main extends SimpleApplication {
         bulletAppState.getPhysicsSpace().add(houseGhost);
 
         //camera parameters
-        flyCam.setMoveSpeed(50f);
-        cam.lookAtDirection(camView, new Vector3f(0, 1, 0));
+//        flyCam.setMoveSpeed(50f);
+        flyCam.setDragToRotate(true);
+        flyCam.setEnabled(false);
+        cam.lookAtDirection(new Vector3f(-1, -0.3f, 0), new Vector3f(0, 1, 0));
     }
 
     public void setMaterials() {
@@ -260,7 +271,7 @@ public class Main extends SimpleApplication {
     public Rock createRock(int team, int index, Rock[] rockTeam, ArrayList<YLockControl> physTeam, float tpf) {
         Rock rock = new Rock(team);
         rock.setRockModel(assetManager.loadModel(rock.getModelPath()));
-        rock.getRockModel().setLocalTranslation(originRockPos.add(0, 0, 0));
+        rock.getRockModel().setLocalTranslation(originRockPos.add(2, 0, 2f));
         rock.getRockModel().setMaterial(dirtMat);
         rootNode.attachChild(rock.getRockModel());
 
@@ -285,6 +296,12 @@ public class Main extends SimpleApplication {
             if (name.equals("stop") && !keyPressed){
                 stopRock();
             }
+            if (name.equals("throw")){
+                setThrowValue();
+            }
+//            if (name.equals("get") && !keyPressed){
+//                setThrowValue();
+//            }
 //            if (name.equals("reset")) {
 //                resetPos(rockTeam, originRockPos, rockPhy);
 //            }
@@ -293,11 +310,45 @@ public class Main extends SimpleApplication {
 
     public void throwRock(ArrayList<YLockControl> physTeam) {
         if (shotDone.get(physTeam.size() - 1) == false) {
-            physTeam.get(physTeam.size() - 1).setLinearVelocity(new Vector3f(-1, 0, 0).mult(100f));
-            //System.out.println(physTeam.get(physTeam.size() - 1).getPhysicsLocation().y);
+            float currentX = inputManager.getCursorPosition().x;
+            float currentY = inputManager.getCursorPosition().y;
+            
+            float velocityX;
+            float velocityY;
+            
+            if(shotX - currentX > 300){
+                velocityX = 300;
+            }
+            else if(shotX - currentX < -300){
+                velocityX = -300;
+            }
+            else{
+                velocityX = shotX - currentX;
+            }
+            
+            if(shotY - currentY > 200){
+                velocityY = 200;
+            }
+            else if(shotY - currentY < 0){
+                velocityY = 0;
+            }
+            else{
+                velocityY = shotY - currentY;
+            }
+            
+            velocityX = velocityX/3;
+            velocityY = velocityY/2;
+            
+            physTeam.get(physTeam.size() - 1).setLinearVelocity(new Vector3f(-velocityY, 0, -velocityX));
+
             shotDone.set(physTeam.size() - 1, true);
             scoreboard.setTotalShots(scoreboard.getTotalShots() + 1);
         }
+    }
+    
+    public void setThrowValue(){
+        shotX = inputManager.getCursorPosition().x;
+        shotY = inputManager.getCursorPosition().y;
     }
     
     public void stopRock(){
@@ -353,6 +404,7 @@ public class Main extends SimpleApplication {
 //    }
     @Override
     public void simpleUpdate(float tpf) {
+        
         if (shotDone.get(0) == true && physTeam.isEmpty()) {
             createRock(1, 0, rockTeam1, physTeam, tpf);
             shotDone.set(0, false);
@@ -400,10 +452,14 @@ public class Main extends SimpleApplication {
             
 
         }
+        
+        Vector3f rockCamLocation = physTeam.get(physTeam.size()-1).getPhysicsLocation().add(15, 5, 0);
+        cam.setLocation(rockCamLocation);
 
         //listener for the left and right click action
         inputManager.addListener(actionListenerThrow, "throw");
         inputManager.addListener(actionListenerThrow, "stop");
+        inputManager.addListener(actionListenerThrow, "get");
         
 
 //        //check if rocks are in the house
