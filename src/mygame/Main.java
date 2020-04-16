@@ -57,11 +57,14 @@ public class Main extends SimpleApplication {
     private GhostControl houseGhost;
 
     //Initializers necessary for scoreboard and score
-    private Spatial[] rockTeam1 = new Spatial[4];
-    private Spatial[] rockTeam2 = new Spatial[4];
+    private Rock[] rockTeam1 = new Rock[4];
+    private Rock[] rockTeam2 = new Rock[4];
 
     private double[] distanceFromCenterTeam1 = new double[4];
     private double[] distanceFromCenterTeam2 = new double[4];
+    
+    private YLockControl[] controlTeam1 = new YLockControl[4];
+    private YLockControl[] controlTeam2 = new YLockControl[4];
 
     //ArrayList of YLockControl to add elements at the end of the array
     ArrayList<YLockControl> physTeam = new ArrayList();
@@ -100,8 +103,8 @@ public class Main extends SimpleApplication {
         inputManager.addMapping("stop", new MouseButtonTrigger(MouseInput.BUTTON_RIGHT));
 
         //creation of cylinder node for detection of collision inside house
-        float cylinderRadius = centerPos.distance(extremity) - 6f;
-        Cylinder cylinder = new Cylinder(100, 100, cylinderRadius, 3f);
+        float cylinderRadius = centerPos.distance(extremity);
+        Cylinder cylinder = new Cylinder(100, 100, cylinderRadius - 6f, 3f);
         Geometry cylin = new Geometry("Cylinder", cylinder);
         Quaternion x90 = new Quaternion();
         x90.fromAngleAxis(FastMath.PI / 2, new Vector3f(1, 0, 0));
@@ -163,8 +166,8 @@ public class Main extends SimpleApplication {
 
     public void getDistanceFromCenter(Vector3f centerPos) {
         for (int count = 0; count < 4; count++) {
-            distanceFromCenterTeam1[count] =  rockTeam1[count].getLocalTranslation().distance(centerPos);
-            distanceFromCenterTeam2[count] = (rockTeam2[count]).getLocalTranslation().distance(centerPos);
+            distanceFromCenterTeam1[count] =  rockTeam1[count].getDistanceFrom(centerPos);
+            distanceFromCenterTeam2[count] = rockTeam2[count].getDistanceFrom(centerPos);
         }
     }
 
@@ -186,19 +189,22 @@ public class Main extends SimpleApplication {
     //            rockHouse2 = false;
     //        }
     //    }
+    
     //method for sorting both distanceFromCenter arrays to find which team will score in a particular round
-    public void selectionSort(double[] array, Spatial[] rockTeam) {
+    public void selectionSort(double[] array, Rock[] rockTeam, YLockControl[] controlTeam) {
         for (int i = 0; i < array.length - 1; i++) {
             //find the minimum distance value in the array [i ... array.length-1]
             double currentMin = array[i];
             int currentMinIndex = i;
-            Spatial minRock = rockTeam[i];
+            Rock minRock = rockTeam[i];
+            YLockControl minControlTeam = controlTeam[i];
 
             for (int j = i + 1; j < array.length; j++) {
                 if (currentMin > array[j]) {
                     currentMin = array[j];
                     currentMinIndex = j;
                     minRock = rockTeam[j];
+                    minControlTeam = controlTeam[j];
                 }
             }
             //swap array[i] with list[currentMinIndex] if necessary
@@ -207,14 +213,16 @@ public class Main extends SimpleApplication {
                 array[i] = currentMin;
                 rockTeam[currentMinIndex] = rockTeam[i];
                 rockTeam[i] = minRock;
+                controlTeam[currentMinIndex] = controlTeam[i];
+                controlTeam[i] = minControlTeam;
             }
         }
     }
 
     //determine which team scores and how many points they score in one particular round
-    public void score(double[] distanceFromCenterTeam1, double[] distanceFromCenterTeam2, Spatial[] rockTeam1, Spatial[] rockTeam2) {
-        selectionSort(distanceFromCenterTeam1, rockTeam1);
-        selectionSort(distanceFromCenterTeam2, rockTeam2);
+    public void score(double[] distanceFromCenterTeam1, double[] distanceFromCenterTeam2, Rock[] rockTeam1, Rock[] rockTeam2, YLockControl[] controlTeam1, YLockControl[] controlTeam2) {
+        selectionSort(distanceFromCenterTeam1, rockTeam1, controlTeam1);
+        selectionSort(distanceFromCenterTeam2, rockTeam2, controlTeam2);
 
         //check if rock is in the house
         if (distanceFromCenterTeam1[0] <= distanceFromCenterTeam2[0]) {              //Case where team 1 scores
@@ -249,15 +257,15 @@ public class Main extends SimpleApplication {
         }
     }
 
-    public Spatial createRock(int team, int index, Spatial[] rockTeam, ArrayList<YLockControl> physTeam, float tpf) {
-        Spatial rock = new Rock(team);
-        rock.setLocalTranslation(originRockPos.add(0, 0, 0));
-        rock = assetManager.loadModel(((Rock)rock).getModelPath());
-        rock.setMaterial(dirtMat);
-        rootNode.attachChild(rock);
+    public Rock createRock(int team, int index, Rock[] rockTeam, ArrayList<YLockControl> physTeam, float tpf) {
+        Rock rock = new Rock(team);
+        rock.setRockModel(assetManager.loadModel(rock.getModelPath()));
+        rock.getRockModel().setLocalTranslation(originRockPos.add(0, 0, 0));
+        rock.getRockModel().setMaterial(dirtMat);
+        rootNode.attachChild(rock.getRockModel());
 
         YLockControl rockPhy = new YLockControl(1f);
-        rock.addControl(rockPhy);
+        rock.getRockModel().addControl(rockPhy);
         rockPhy.setRestitution(1f);
         rockPhy.setLinearDamping(0.20f);
         bulletAppState.getPhysicsSpace().add(rockPhy);
@@ -285,7 +293,7 @@ public class Main extends SimpleApplication {
 
     public void throwRock(ArrayList<YLockControl> physTeam) {
         if (shotDone.get(physTeam.size() - 1) == false) {
-            physTeam.get(physTeam.size() - 1).setLinearVelocity(new Vector3f(-1, 0, 0).mult(50f));
+            physTeam.get(physTeam.size() - 1).setLinearVelocity(new Vector3f(-1, 0, 0).mult(100f));
             //System.out.println(physTeam.get(physTeam.size() - 1).getPhysicsLocation().y);
             shotDone.set(physTeam.size() - 1, true);
             scoreboard.setTotalShots(scoreboard.getTotalShots() + 1);
@@ -310,6 +318,24 @@ public class Main extends SimpleApplication {
             }
         }
         return (allTrue == physTeam.size());
+    }
+    
+    public void updateInHouse(){
+        for (int i = 0; i < 4; i++){
+            if(houseGhost.getOverlappingObjects().contains(controlTeam1[i])){
+                rockTeam1[i].setInHouse(true);
+            }
+            else{
+                rockTeam1[i].setInHouse(false);
+            }
+            
+            if(houseGhost.getOverlappingObjects().contains(controlTeam2[i])){
+                rockTeam2[i].setInHouse(true);
+            }
+            else{
+                rockTeam2[i].setInHouse(false);
+            }
+        }
     }
 
 //    public void resetPos(Spatial [] rockTeam, Vector3f origin, RigidBodyControl phy) {
@@ -372,16 +398,13 @@ public class Main extends SimpleApplication {
             physTeam.get(i).prePhysicsTick(bulletAppState.getPhysicsSpace(), tpf);
             physTeam.get(i).physicsTick(bulletAppState.getPhysicsSpace(), tpf);
             
-//            if(houseGhost.getOverlappingObjects().contains(physTeam.get(i))){
-//                ((physTeam.get(i).getUserObject())).setInHouse(true);
-//            }
+
         }
 
         //listener for the left and right click action
         inputManager.addListener(actionListenerThrow, "throw");
         inputManager.addListener(actionListenerThrow, "stop");
         
-        System.out.println(scoreboard.getTotalShots());
 
 //        //check if rocks are in the house
 //        checkRockHouse();
@@ -390,13 +413,30 @@ public class Main extends SimpleApplication {
             if(scoreboard.getTotalShots() == 8 && noMouvement(physTeam)){
                 getDistanceFromCenter(centerPos);
                 System.out.println("getDistance");
+                
+                for (int i = 0, j = 0; i < physTeam.size() && j < 4; i += 2, j++){
+                    controlTeam1[j] = physTeam.get(i);
+
+                }
+                
+                for (int i = 1, j = 0; i < physTeam.size() && j < 4; i += 2, j++){
+                    controlTeam2[j] = physTeam.get(i);
+
+                }
+                
+                updateInHouse();
+                
+
+                
+                
             }
         }
         catch(ClassCastException e){
             System.out.println("ClassCast");
         }
+        
         //get the team that scores and the number of points they score in one particular round
-        score(distanceFromCenterTeam1, distanceFromCenterTeam2, rockTeam1, rockTeam2);
+        score(distanceFromCenterTeam1, distanceFromCenterTeam2, rockTeam1, rockTeam2, controlTeam1, controlTeam2);
     }
 
     @Override

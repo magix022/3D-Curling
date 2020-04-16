@@ -27,6 +27,7 @@ public class YLockControl extends RigidBodyControl implements PhysicsTickListene
         super(mass);
     }
     
+    
     private float accelerationFactor = 4f;
     
     public float yLocation;
@@ -77,8 +78,9 @@ public class YLockControl extends RigidBodyControl implements PhysicsTickListene
         
         if(this.getLinearVelocity().length() < 0.5 && this.getLinearVelocity().length() > 0){
             this.setLinearVelocity(Vector3f.ZERO);
-            
         }
+        
+
         
         
         

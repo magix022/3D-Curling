@@ -24,7 +24,7 @@ import com.jme3.scene.Node;
  *
  * @author emile
  */
-public class Rock extends Spatial {
+public class Rock {
 
 //    private float speedX;
 //    private float speedZ;
@@ -148,7 +148,7 @@ public class Rock extends Spatial {
     }
 
     public double getDistanceFrom(Vector3f vector) {
-        return this.getLocalTranslation().distance(vector);
+        return this.rockModel.getLocalTranslation().distance(vector);
     }
     
     public void setInHouse(boolean b){
@@ -158,40 +158,15 @@ public class Rock extends Spatial {
     public boolean getInHouse(){
         return insideHouse;
     }
-
-    @Override
-    public void updateModelBound() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    
+    public void setTeam(int team){
+        this.team = team;
+    }
+    
+    public int getTeam(){
+        return team;
     }
 
-    @Override
-    public void setModelBound(BoundingVolume modelBound) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
 
-    @Override
-    public int getVertexCount() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public int getTriangleCount() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void depthFirstTraversal(SceneGraphVisitor visitor, DFSMode mode) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    protected void breadthFirstTraversal(SceneGraphVisitor visitor, Queue<Spatial> queue) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public int collideWith(Collidable other, CollisionResults results) throws UnsupportedCollisionException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
 
 }
