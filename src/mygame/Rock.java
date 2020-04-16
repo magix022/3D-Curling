@@ -41,6 +41,8 @@ public class Rock extends Spatial {
     private CollisionShape rockCollisionShape;
 
     private Spatial rockModel;
+    
+    private boolean insideHouse = false;
 
     public Rock(int team) {
         super();
@@ -146,7 +148,15 @@ public class Rock extends Spatial {
     }
 
     public double getDistanceFrom(Vector3f vector) {
-        return this.rockModel.getLocalTranslation().distance(vector);
+        return this.getLocalTranslation().distance(vector);
+    }
+    
+    public void setInHouse(boolean b){
+        insideHouse = b;
+    }
+    
+    public boolean getInHouse(){
+        return insideHouse;
     }
 
     @Override
