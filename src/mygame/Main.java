@@ -101,6 +101,7 @@ public class Main extends SimpleApplication {
         //creation of command mapping
         inputManager.addMapping("throw", new MouseButtonTrigger(MouseInput.BUTTON_LEFT));
         inputManager.addMapping("stop", new MouseButtonTrigger(MouseInput.BUTTON_RIGHT));
+        
 
         //creation of cylinder node for detection of collision inside house
         float cylinderRadius = centerPos.distance(extremity);
