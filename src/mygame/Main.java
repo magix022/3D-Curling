@@ -29,6 +29,7 @@ import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.renderer.queue.RenderQueue.Bucket;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
+import com.jme3.scene.debug.Arrow;
 import com.jme3.scene.shape.Cylinder;
 import com.jme3.scene.shape.Sphere;
 import java.awt.Color;
@@ -48,6 +49,8 @@ public class Main extends SimpleApplication {
 
     private Spatial floorScene;
     private RigidBodyControl sceneGeo;
+    
+    private Geometry arrowGeo;
 
     private Material dirtMat;
     private Material blue;
@@ -94,6 +97,8 @@ public class Main extends SimpleApplication {
         //boolean value set at true to start first shot, all other values are currently false
         Collections.fill(shotDone, Boolean.FALSE);
         shotDone.set(0, true);
+        
+
 
         bulletAppState = new BulletAppState();
         stateManager.attach(bulletAppState);
@@ -102,7 +107,19 @@ public class Main extends SimpleApplication {
         setScene();
         setMaterials();
         setCoordinates();
+        
+        Arrow arrow = new Arrow(new Vector3f(-5, 0, 0));
+        
+//        arrow.setArrowExtent(new Vector3f(1,0,0));
+        
+        arrowGeo = new Geometry("Arrow", arrow);
+        arrowGeo.setMaterial(blue);
+        arrowGeo.setLocalTranslation(originRockPos.add(2, 2, 2));
+        arrowGeo.setName("arrowGeo");
+        
+        
 
+        
         //creation of command mapping
         inputManager.addMapping("throw", new MouseButtonTrigger(MouseInput.BUTTON_LEFT));
         inputManager.addMapping("stop", new MouseButtonTrigger(MouseInput.BUTTON_RIGHT));
@@ -130,6 +147,7 @@ public class Main extends SimpleApplication {
         //attaching spatials to rootNode
         rootNode.attachChild(cylin);
         rootNode.attachChild(floorScene);
+//        rootNode.attachChild(arrowGeo);
 
         //adding physics to physicsSpace
         bulletAppState.getPhysicsSpace().add(sceneGeo);
@@ -292,12 +310,14 @@ public class Main extends SimpleApplication {
         public void onAction(String name, boolean keyPressed, float tpf) {
             if (name.equals("throw") && !keyPressed) {
                 throwRock(physTeam);
+                rootNode.getChild("arrowGeo").removeFromParent();
             }
             if (name.equals("stop") && !keyPressed){
                 stopRock();
             }
-            if (name.equals("throw")){
+            if (name.equals("throw") && keyPressed){
                 setThrowValue();
+                rootNode.attachChild(arrowGeo);
             }
 //            if (name.equals("get") && !keyPressed){
 //                setThrowValue();
