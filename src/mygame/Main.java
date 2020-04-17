@@ -29,7 +29,6 @@ import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.renderer.queue.RenderQueue.Bucket;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
-import com.jme3.scene.debug.Arrow;
 import com.jme3.scene.shape.Cylinder;
 import com.jme3.scene.shape.Sphere;
 import java.awt.Color;
@@ -49,8 +48,6 @@ public class Main extends SimpleApplication {
 
     private Spatial floorScene;
     private RigidBodyControl sceneGeo;
-    
-    private Geometry arrowGeo;
 
     private Material dirtMat;
     private Material blue;
@@ -61,31 +58,26 @@ public class Main extends SimpleApplication {
     //use this to check if rock is in house
     private GhostControl houseGhost;
 
-    //Initializers necessary for scoreboard and score
+    //Initializers necessary for scoreboard and score /////////////////////////////////////////////
     private Rock[] rockTeam1 = new Rock[4];
     private Rock[] rockTeam2 = new Rock[4];
 
     private double[] distanceFromCenterTeam1 = new double[4];
     private double[] distanceFromCenterTeam2 = new double[4];
-    
+
     private YLockControl[] controlTeam1 = new YLockControl[4];
     private YLockControl[] controlTeam2 = new YLockControl[4];
 
     //ArrayList of YLockControl to add elements at the end of the array
     ArrayList<YLockControl> physTeam = new ArrayList();
 
+    //ArrayList of shotDone to add elements at the end of the array and check if a particular rock is thrown
+    ArrayList<Boolean> shotDone = new ArrayList(Arrays.asList(new Boolean[8]));  //////////////////////////////////é
+
     //Create ScoreBoard object
     ScoreBoardClass scoreboard = new ScoreBoardClass();
 
-    //Default rock is not in house
-    boolean rockHouseTeam1 = false;
-    boolean rockHouseTeam2 = false;
-
-    //ArrayList of shotDone to add elements at the end of the array and check if a particular rock is thrown
-    ArrayList<Boolean> shotDone = new ArrayList(Arrays.asList(new Boolean[8]));
-    
-    private float shotX = 0;
-    private float shotY = 0;
+    boolean spaceToEndRound = false;
 
     public static void main(String[] args) {
         Main app = new Main();
@@ -94,11 +86,15 @@ public class Main extends SimpleApplication {
 
     @Override
     public void simpleInitApp() {
+        //set number of rounds
+        scoreboard.setNumberOfRounds(10);
+
+        //set initial round to 1
+        scoreboard.setRound(0);
+
         //boolean value set at true to start first shot, all other values are currently false
         Collections.fill(shotDone, Boolean.FALSE);
         shotDone.set(0, true);
-        
-
 
         bulletAppState = new BulletAppState();
         stateManager.attach(bulletAppState);
@@ -107,26 +103,11 @@ public class Main extends SimpleApplication {
         setScene();
         setMaterials();
         setCoordinates();
-        
-        Arrow arrow = new Arrow(new Vector3f(-5, 0, 0));
-        
-//        arrow.setArrowExtent(new Vector3f(1,0,0));
-        
-        arrowGeo = new Geometry("Arrow", arrow);
-        arrowGeo.setMaterial(blue);
-        arrowGeo.setLocalTranslation(originRockPos.add(2, 2, 2));
-        arrowGeo.setName("arrowGeo");
-        
-        
 
-        
         //creation of command mapping
         inputManager.addMapping("throw", new MouseButtonTrigger(MouseInput.BUTTON_LEFT));
         inputManager.addMapping("stop", new MouseButtonTrigger(MouseInput.BUTTON_RIGHT));
-        inputManager.addMapping("get", new KeyTrigger(KeyInput.KEY_F));
-        inputManager.setMouseCursor(null);
-        inputManager.setCursorVisible(true);
-           
+        inputManager.addMapping("resetRound", new KeyTrigger(KeyInput.KEY_SPACE));
 
         //creation of cylinder node for detection of collision inside house
         float cylinderRadius = centerPos.distance(extremity);
@@ -147,17 +128,14 @@ public class Main extends SimpleApplication {
         //attaching spatials to rootNode
         rootNode.attachChild(cylin);
         rootNode.attachChild(floorScene);
-//        rootNode.attachChild(arrowGeo);
 
         //adding physics to physicsSpace
         bulletAppState.getPhysicsSpace().add(sceneGeo);
         bulletAppState.getPhysicsSpace().add(houseGhost);
 
         //camera parameters
-//        flyCam.setMoveSpeed(50f);
-        flyCam.setDragToRotate(true);
-        flyCam.setEnabled(false);
-        cam.lookAtDirection(new Vector3f(-1, -0.3f, 0), new Vector3f(0, 1, 0));
+        flyCam.setMoveSpeed(50f);
+        cam.lookAtDirection(camView, new Vector3f(0, 1, 0));
     }
 
     public void setMaterials() {
@@ -195,7 +173,7 @@ public class Main extends SimpleApplication {
 
     public void getDistanceFromCenter(Vector3f centerPos) {
         for (int count = 0; count < 4; count++) {
-            distanceFromCenterTeam1[count] =  rockTeam1[count].getDistanceFrom(centerPos);
+            distanceFromCenterTeam1[count] = rockTeam1[count].getDistanceFrom(centerPos);
             distanceFromCenterTeam2[count] = rockTeam2[count].getDistanceFrom(centerPos);
         }
     }
@@ -218,8 +196,7 @@ public class Main extends SimpleApplication {
     //            rockHouse2 = false;
     //        }
     //    }
-    
-    //method for sorting both distanceFromCenter arrays to find which team will score in a particular round
+    //method for sorting all team rock arrays
     public void selectionSort(double[] array, Rock[] rockTeam, YLockControl[] controlTeam) {
         for (int i = 0; i < array.length - 1; i++) {
             //find the minimum distance value in the array [i ... array.length-1]
@@ -249,47 +226,79 @@ public class Main extends SimpleApplication {
     }
 
     //determine which team scores and how many points they score in one particular round
-    public void score(double[] distanceFromCenterTeam1, double[] distanceFromCenterTeam2, Rock[] rockTeam1, Rock[] rockTeam2, YLockControl[] controlTeam1, YLockControl[] controlTeam2) {
+    public void calculateScore(double[] distanceFromCenterTeam1, double[] distanceFromCenterTeam2,
+            Rock[] rockTeam1, Rock[] rockTeam2, YLockControl[] controlTeam1, YLockControl[] controlTeam2) {
         selectionSort(distanceFromCenterTeam1, rockTeam1, controlTeam1);
         selectionSort(distanceFromCenterTeam2, rockTeam2, controlTeam2);
+        updateInHouse();
 
-        //check if rock is in the house
-        if (distanceFromCenterTeam1[0] <= distanceFromCenterTeam2[0]) {              //Case where team 1 scores
-            if (distanceFromCenterTeam1[1] < distanceFromCenterTeam2[0]) {
-                if (distanceFromCenterTeam1[2] < distanceFromCenterTeam2[0]) {
-                    if (distanceFromCenterTeam1[3] < distanceFromCenterTeam2[0]) {
-                        scoreboard.setTeam1RoundScore(4);
+        if (distanceFromCenterTeam1[0] <= distanceFromCenterTeam2[0] && rockTeam1[0].getInHouse()) {              //Scoring for Team1
+            if (distanceFromCenterTeam1[1] < distanceFromCenterTeam2[0] && rockTeam1[1].getInHouse()) {
+                if (distanceFromCenterTeam1[2] < distanceFromCenterTeam2[0] && rockTeam1[2].getInHouse()) {
+                    if (distanceFromCenterTeam1[3] < distanceFromCenterTeam2[0] && rockTeam1[3].getInHouse()) {
+                        scoreboard.setTeam1RoundScore(scoreboard.getRound(), 4);
                     } else {
-                        scoreboard.setTeam1RoundScore(3);
+                        scoreboard.setTeam1RoundScore(scoreboard.getRound(), 3);
                     }
                 } else {
-                    scoreboard.setTeam1RoundScore(2);
+                    scoreboard.setTeam1RoundScore(scoreboard.getRound(), 2);
                 }
             } else {
-                scoreboard.setTeam1RoundScore(1);
+                scoreboard.setTeam1RoundScore(scoreboard.getRound(), 1);
             }
-        } else {                                                                    //Case where team 2 scores
-            //check if rock is inside the house
-            if (distanceFromCenterTeam1[0] > distanceFromCenterTeam2[1]) {
-                if (distanceFromCenterTeam1[0] > distanceFromCenterTeam2[2]) {
-                    if (distanceFromCenterTeam1[0] > distanceFromCenterTeam2[3]) {
-                        scoreboard.setTeam2RoundScore(4);
+        } else {
+            scoreboard.setTeam1RoundScore(scoreboard.getRound(), 0);
+        }
+
+        if (distanceFromCenterTeam1[0] > distanceFromCenterTeam2[0] && rockTeam2[0].getInHouse()) {                  //Scoring for Team2
+            if (distanceFromCenterTeam1[0] > distanceFromCenterTeam2[1] && rockTeam2[1].getInHouse()) {
+                if (distanceFromCenterTeam1[0] > distanceFromCenterTeam2[2] && rockTeam2[2].getInHouse()) {
+                    if (distanceFromCenterTeam1[0] > distanceFromCenterTeam2[3] && rockTeam2[3].getInHouse()) {
+                        scoreboard.setTeam2RoundScore(scoreboard.getRound(), 4);
                     } else {
-                        scoreboard.setTeam2RoundScore(3);
+                        scoreboard.setTeam2RoundScore(scoreboard.getRound(), 3);
                     }
                 } else {
-                    scoreboard.setTeam2RoundScore(2);
+                    scoreboard.setTeam2RoundScore(scoreboard.getRound(), 2);
                 }
             } else {
-                scoreboard.setTeam2RoundScore(1);
+                scoreboard.setTeam2RoundScore(scoreboard.getRound(), 1);
+            }
+        } else {
+            scoreboard.setTeam2RoundScore(scoreboard.getRound(), 0);
+        }
+    }
+
+    public void updateInHouse() {
+        for (int i = 0; i < 4; i++) {
+            if (houseGhost.getOverlappingObjects().contains(controlTeam1[i])) {
+                rockTeam1[i].setInHouse(true);
+            } else {
+                rockTeam1[i].setInHouse(false);
+            }
+
+            if (houseGhost.getOverlappingObjects().contains(controlTeam2[i])) {
+                rockTeam2[i].setInHouse(true);
+            } else {
+                rockTeam2[i].setInHouse(false);
             }
         }
+    }
+
+    public void displayScore() {
+        System.out.println("This round's score is :");
+        System.out.println("Team 1: " + scoreboard.getTeam1RoundScore(scoreboard.getRound())
+                + "\tTeam 2: " + scoreboard.getTeam2RoundScore(scoreboard.getRound()));
+        System.out.println(scoreboard.getRoundWinner());
+
+        System.out.println("The total score after round " + (scoreboard.getRound() + 1) + " is :");
+        System.out.println("Team 1: " + scoreboard.getTeam1TotalScore() + "\tTeam 2: " + scoreboard.getTeam2TotalScore() + "\n");
     }
 
     public Rock createRock(int team, int index, Rock[] rockTeam, ArrayList<YLockControl> physTeam, float tpf) {
         Rock rock = new Rock(team);
         rock.setRockModel(assetManager.loadModel(rock.getModelPath()));
-        rock.getRockModel().setLocalTranslation(originRockPos.add(2, 0, 2f));
+        rock.getRockModel().setLocalTranslation(originRockPos.add(0, 0, 0));
         rock.getRockModel().setMaterial(dirtMat);
         rootNode.attachChild(rock.getRockModel());
 
@@ -305,81 +314,45 @@ public class Main extends SimpleApplication {
         return rock;
     }
 
+    private ActionListener actionListenerResetRound = new ActionListener() {
+        @Override
+        public void onAction(String name, boolean keyPressed, float tpf) {
+            if (name.equals("resetRound") && !keyPressed) {
+                resetRound();
+                spaceToEndRound = true;
+            }
+        }
+    };
+
     private ActionListener actionListenerThrow = new ActionListener() {
         @Override
         public void onAction(String name, boolean keyPressed, float tpf) {
             if (name.equals("throw") && !keyPressed) {
                 throwRock(physTeam);
-                rootNode.getChild("arrowGeo").removeFromParent();
             }
-            if (name.equals("stop") && !keyPressed){
+            if (name.equals("stop") && !keyPressed) {
                 stopRock();
             }
-            if (name.equals("throw") && keyPressed){
-                setThrowValue();
-                rootNode.attachChild(arrowGeo);
-            }
-//            if (name.equals("get") && !keyPressed){
-//                setThrowValue();
-//            }
-//            if (name.equals("reset")) {
-//                resetPos(rockTeam, originRockPos, rockPhy);
-//            }
         }
     };
 
     public void throwRock(ArrayList<YLockControl> physTeam) {
         if (shotDone.get(physTeam.size() - 1) == false) {
-            float currentX = inputManager.getCursorPosition().x;
-            float currentY = inputManager.getCursorPosition().y;
-            
-            float velocityX;
-            float velocityY;
-            
-            if(shotX - currentX > 300){
-                velocityX = 300;
-            }
-            else if(shotX - currentX < -300){
-                velocityX = -300;
-            }
-            else{
-                velocityX = shotX - currentX;
-            }
-            
-            if(shotY - currentY > 200){
-                velocityY = 200;
-            }
-            else if(shotY - currentY < 0){
-                velocityY = 0;
-            }
-            else{
-                velocityY = shotY - currentY;
-            }
-            
-            velocityX = velocityX/3;
-            velocityY = velocityY/2;
-            
-            physTeam.get(physTeam.size() - 1).setLinearVelocity(new Vector3f(-velocityY, 0, -velocityX));
-
+            physTeam.get(physTeam.size() - 1).setLinearVelocity(new Vector3f(-1, 0, 0).mult(100f));
+            //System.out.println(physTeam.get(physTeam.size() - 1).getPhysicsLocation().y);
             shotDone.set(physTeam.size() - 1, true);
             scoreboard.setTotalShots(scoreboard.getTotalShots() + 1);
         }
     }
-    
-    public void setThrowValue(){
-        shotX = inputManager.getCursorPosition().x;
-        shotY = inputManager.getCursorPosition().y;
-    }
-    
-    public void stopRock(){
-        for(int i = 0; i < physTeam.size(); i++){
+
+    public void stopRock() {
+        for (int i = 0; i < physTeam.size(); i++) {
             physTeam.get(i).setLinearVelocity(Vector3f.ZERO);
         }
-        shotDone.set(physTeam.size()-1, true);
+        shotDone.set(physTeam.size() - 1, true);
     }
-    
-//**********shotDone
 
+//**********shotDone
 //method to check if all rock in play are motionless
     public boolean noMouvement(ArrayList<YLockControl> physTeam) {
         int allTrue = 0;
@@ -389,24 +362,6 @@ public class Main extends SimpleApplication {
             }
         }
         return (allTrue == physTeam.size());
-    }
-    
-    public void updateInHouse(){
-        for (int i = 0; i < 4; i++){
-            if(houseGhost.getOverlappingObjects().contains(controlTeam1[i])){
-                rockTeam1[i].setInHouse(true);
-            }
-            else{
-                rockTeam1[i].setInHouse(false);
-            }
-            
-            if(houseGhost.getOverlappingObjects().contains(controlTeam2[i])){
-                rockTeam2[i].setInHouse(true);
-            }
-            else{
-                rockTeam2[i].setInHouse(false);
-            }
-        }
     }
 
 //    public void resetPos(Spatial [] rockTeam, Vector3f origin, RigidBodyControl phy) {
@@ -424,99 +379,114 @@ public class Main extends SimpleApplication {
 //    }
     @Override
     public void simpleUpdate(float tpf) {
-        
-        if (shotDone.get(0) == true && physTeam.isEmpty()) {
-            createRock(1, 0, rockTeam1, physTeam, tpf);
-            shotDone.set(0, false);
-        }
-
-        if (noMouvement(physTeam) && shotDone.get(0) == true) {
-            createRock(2, 0, rockTeam2, physTeam, tpf);
-            shotDone.set(0, false);
-        }
-
-        if (noMouvement(physTeam) && shotDone.get(1) == true) {
-            createRock(1, 1, rockTeam1, physTeam, tpf);
-            shotDone.set(1, false);
-        }
-
-        if (noMouvement(physTeam) && shotDone.get(2) == true) {
-            createRock(2, 1, rockTeam2, physTeam, tpf);
-            shotDone.set(2, false);
-        }
-
-        if (noMouvement(physTeam) && shotDone.get(3) == true) {
-            createRock(1, 2, rockTeam1, physTeam, tpf);
-            shotDone.set(3, false);
-        }
-
-        if (noMouvement(physTeam) && shotDone.get(4) == true) {
-            createRock(2, 2, rockTeam2, physTeam, tpf);
-            shotDone.set(4, false);
-        }
-
-        if (noMouvement(physTeam) && shotDone.get(5) == true) {
-            createRock(1, 3, rockTeam1, physTeam, tpf);
-            shotDone.set(5, false);
-        }
-
-        if (noMouvement(physTeam) && shotDone.get(6) == true) {
-            createRock(2, 3, rockTeam2, physTeam, tpf);
-            shotDone.set(6, false);
-        }
-
-        for (int i = 0; i < physTeam.size(); i++) {
-            physTeam.get(i).controlUpdate(tpf, originRockPos.getY());
-            physTeam.get(i).prePhysicsTick(bulletAppState.getPhysicsSpace(), tpf);
-            physTeam.get(i).physicsTick(bulletAppState.getPhysicsSpace(), tpf);
-            
-
-        }
-        
-        Vector3f rockCamLocation = physTeam.get(physTeam.size()-1).getPhysicsLocation().add(15, 5, 0);
-        cam.setLocation(rockCamLocation);
-
-        //listener for the left and right click action
-        inputManager.addListener(actionListenerThrow, "throw");
-        inputManager.addListener(actionListenerThrow, "stop");
-        inputManager.addListener(actionListenerThrow, "get");
-        
-
-//        //check if rocks are in the house
-//        checkRockHouse();
-        //get distance between rocks and center of the house
-        try{
-            if(scoreboard.getTotalShots() == 8 && noMouvement(physTeam)){
-                getDistanceFromCenter(centerPos);
-                System.out.println("getDistance");
-                
-                for (int i = 0, j = 0; i < physTeam.size() && j < 4; i += 2, j++){
-                    controlTeam1[j] = physTeam.get(i);
-
-                }
-                
-                for (int i = 1, j = 0; i < physTeam.size() && j < 4; i += 2, j++){
-                    controlTeam2[j] = physTeam.get(i);
-
-                }
-                
-                updateInHouse();
-                
-
-                
-                
+        if (scoreboard.getRound() < scoreboard.getNumberOfRounds()) {
+            if (shotDone.get(0) == true && physTeam.isEmpty()) {
+                createRock(1, 0, rockTeam1, physTeam, tpf);
+                shotDone.set(0, false);
             }
+
+            if (noMouvement(physTeam) && shotDone.get(0) == true) {
+                createRock(2, 0, rockTeam2, physTeam, tpf);
+                shotDone.set(0, false);
+            }
+
+            if (noMouvement(physTeam) && shotDone.get(1) == true) {
+                createRock(1, 1, rockTeam1, physTeam, tpf);
+                shotDone.set(1, false);
+            }
+
+            if (noMouvement(physTeam) && shotDone.get(2) == true) {
+                createRock(2, 1, rockTeam2, physTeam, tpf);
+                shotDone.set(2, false);
+            }
+
+            if (noMouvement(physTeam) && shotDone.get(3) == true) {
+                createRock(1, 2, rockTeam1, physTeam, tpf);
+                shotDone.set(3, false);
+            }
+
+            if (noMouvement(physTeam) && shotDone.get(4) == true) {
+                createRock(2, 2, rockTeam2, physTeam, tpf);
+                shotDone.set(4, false);
+            }
+
+            if (noMouvement(physTeam) && shotDone.get(5) == true) {
+                createRock(1, 3, rockTeam1, physTeam, tpf);
+                shotDone.set(5, false);
+            }
+
+            if (noMouvement(physTeam) && shotDone.get(6) == true) {
+                createRock(2, 3, rockTeam2, physTeam, tpf);
+                shotDone.set(6, false);
+            }
+
+            for (int i = 0; i < physTeam.size(); i++) {
+                physTeam.get(i).controlUpdate(tpf, originRockPos.getY());
+                physTeam.get(i).prePhysicsTick(bulletAppState.getPhysicsSpace(), tpf);
+                physTeam.get(i).physicsTick(bulletAppState.getPhysicsSpace(), tpf);
+
+            }
+
+            //listener for the left and right click action
+            inputManager.addListener(actionListenerThrow, "throw");
+            inputManager.addListener(actionListenerThrow, "stop");
+
+            if (scoreboard.getTotalShots() == 8 && noMouvement(physTeam)) {
+
+                for (int i = 0, j = 0; i < physTeam.size() && j < 4; i += 2, j++) {
+                    controlTeam1[j] = physTeam.get(i);
+                }
+
+                for (int i = 1, j = 0; i < physTeam.size() && j < 4; i += 2, j++) {
+                    controlTeam2[j] = physTeam.get(i);
+                }
+
+                //get distance between rocks and center of the house
+                getDistanceFromCenter(centerPos);
+
+                //get the team that scores and the number of points they score in one particular round
+                calculateScore(distanceFromCenterTeam1, distanceFromCenterTeam2, rockTeam1, rockTeam2, controlTeam1, controlTeam2);
+
+                displayScore();
+                System.out.println("current round" + scoreboard.getRound());
+                scoreboard.setTotalShots(0);
+                while (spaceToEndRound) {
+                    inputManager.addListener(actionListenerResetRound, "resetRound");
+                }
+
+                spaceToEndRound = false;
+            }
+        } else {
+            System.out.println("Game is finished");
+            System.out.println("The final score is");
+            System.out.println("Team 1: " + scoreboard.getTeam1TotalScore() + "\tTeam 2: " + scoreboard.getTeam2TotalScore() + "\n");
+            System.out.println(scoreboard.getGameWinner());
         }
-        catch(ClassCastException e){
-            System.out.println("ClassCast");
-        }
-        
-        //get the team that scores and the number of points they score in one particular round
-        score(distanceFromCenterTeam1, distanceFromCenterTeam2, rockTeam1, rockTeam2, controlTeam1, controlTeam2);
     }
 
     @Override
     public void simpleRender(RenderManager rm) {
         //TODO: add render code
+    }
+
+    //reset all variables for following round
+    private void resetRound() {
+
+        scoreboard.setRound(scoreboard.getRound() + 1);
+        physTeam.clear();
+        shotDone.removeAll(shotDone);
+        Collections.fill(shotDone, Boolean.FALSE);
+        shotDone.set(0, true);
+
+        for (int i = 0; i < rockTeam1.length; i++) {
+            rockTeam1[i] = null;
+            rockTeam2[i] = null;
+
+            distanceFromCenterTeam1[i] = 0;
+            distanceFromCenterTeam2[i] = 0;
+
+            controlTeam1[i] = null;
+            controlTeam2[i] = null;
+        }
     }
 }
