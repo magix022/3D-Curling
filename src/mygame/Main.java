@@ -1,6 +1,7 @@
 package mygame;
 
 import com.jme3.app.SimpleApplication;
+import com.jme3.audio.AudioNode;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.renderer.RenderManager;
@@ -25,6 +26,7 @@ import com.jme3.math.FastMath;
 import com.jme3.math.Matrix3f;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
+import com.jme3.niftygui.NiftyJmeDisplay;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.renderer.queue.RenderQueue.Bucket;
 import com.jme3.scene.Node;
@@ -32,12 +34,17 @@ import com.jme3.scene.Spatial;
 import com.jme3.scene.debug.Arrow;
 import com.jme3.scene.shape.Cylinder;
 import com.jme3.scene.shape.Sphere;
+import de.lessvoid.nifty.Nifty;
+import de.lessvoid.nifty.controls.ImageSelect;
+import de.lessvoid.nifty.screen.Screen;
+import de.lessvoid.nifty.screen.ScreenController;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.concurrent.TimeUnit;
 
-public class Main extends SimpleApplication {
+public class Main extends SimpleApplication implements ScreenController {
 
     private BulletAppState bulletAppState;
 
@@ -86,13 +93,40 @@ public class Main extends SimpleApplication {
     boolean roundIsDone = true;
     boolean gameIsFinished = true;
 
+    private Boolean camStatus;
+    private Screen screen;
+    private AudioNode audio;
+    private Nifty nifty;
+    private Boolean unlockCommands = false;
+
     public static void main(String[] args) {
         Main app = new Main();
         app.start();
     }
 
+    public void Init_Nifty() {
+
+        NiftyJmeDisplay niftyDisplay = NiftyJmeDisplay.newNiftyJmeDisplay(
+                assetManager,
+                inputManager,
+                audioRenderer,
+                guiViewPort);
+        nifty = niftyDisplay.getNifty();
+        nifty.fromXml("Interface/HelloJme.xml", "start", this);
+
+        // attach the nifty display to the gui view port as a processor
+        guiViewPort.addProcessor(niftyDisplay);
+
+       
+      
+
+    }
+
     @Override
     public void simpleInitApp() {
+        
+          Init_Nifty();
+
         //set number of rounds
         scoreboard.setNumberOfRounds(10);
 
@@ -337,14 +371,16 @@ public class Main extends SimpleApplication {
     private ActionListener actionListenerThrow = new ActionListener() {
         @Override
         public void onAction(String name, boolean keyPressed, float tpf) {
-            if (name.equals("throw") && !keyPressed) {
+            try{
+            
+            if (name.equals("throw") && !keyPressed && unlockCommands) {
                 throwRock(physTeam);
                 rootNode.getChild("arrowGeo").removeFromParent();
             }
-            if (name.equals("stop") && !keyPressed) {
+            if (name.equals("stop") && !keyPressed && unlockCommands) {
                 stopRock();
             }
-            if (name.equals("throw") && keyPressed) {
+            if (name.equals("throw") && keyPressed && unlockCommands) {
                 setThrowValue();
                 rootNode.attachChild(arrowGeo);
             }
@@ -355,6 +391,12 @@ public class Main extends SimpleApplication {
 //                resetPos(rockTeam, originRockPos, rockPhy);
 //            }
         }
+        
+        catch(NullPointerException ex){
+            System.out.print("t nul");
+        
+    }
+    }
     };
 
     public void throwRock(ArrayList<YLockControl> physTeam) {
@@ -547,5 +589,84 @@ public class Main extends SimpleApplication {
         Collections.fill(shotDone, Boolean.FALSE);
         shotDone.set(0, true);
 
+    }
+
+
+    @Override
+    public void bind(Nifty nifty, Screen screen) {
+        System.out.println("bind( " + screen.getScreenId() + ")");
+    }
+
+    @Override
+    public void onStartScreen() {
+        System.out.println("onStartScreen");
+    }
+
+    @Override
+    public void onEndScreen() {
+        System.out.println("onEndScreen");
+    }
+
+    public void quit() {
+        nifty.gotoScreen("end");
+
+    }
+
+    public void startGame(String nextScreen) {
+        System.out.print("startgame");
+
+        nifty.gotoScreen(nextScreen);
+        
+        
+       
+
+    }
+
+    public void teamSelection() {
+        
+        nifty.gotoScreen("hud");
+        unlockCommand();
+        
+        
+        
+        
+       
+       // ImageSelect select = screen.findNiftyControl("imageSelect", ImageSelect.class);
+       // int index = select.getSelectedImageIndex();
+        //System.out.print(index);
+        
+
+    }
+    public void unlockCommand(){
+        
+        try{
+            
+             
+        TimeUnit.SECONDS.sleep(5);
+        }
+        catch(Exception ex){
+            System.out.print("Delai exception");
+        }
+        unlockCommands = true;
+        
+    }
+
+    public void option(String nextScreen) {
+        nifty.gotoScreen(nextScreen);
+        
+    }
+
+    public void mainMenu() {
+        nifty.gotoScreen("start");
+      
+    }
+
+    public void sound() {
+        nifty.gotoScreen("sound");
+    }
+
+    public void quitGame() {
+
+        System.exit(0);
     }
 }
