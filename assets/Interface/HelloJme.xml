@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<nifty xmlns="http://nifty-gui.lessvoid.com/nifty-gui" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://raw.githubusercontent.com/void256/nifty-gui/1.4/nifty-core/src/main/resources/nifty.xsd https://raw.githubusercontent.com/void256/nifty-gui/1.4/nifty-core/src/main/resources/nifty.xsd">
+  <useStyles filename="nifty-default-styles.xml"/>
+    <useControls filename="nifty-default-controls.xml"/>
+    
+    //start screen
+    
+    <screen id="start" controller="mygame.Main" >
+        <layer id="background" childLayout="center" height="100%" width="100%">
+            <image filename="Interface/background.jpg" height="100%" width="100%" visibleToMouse="true" >
+                
+                
+ 
+            </image>
+        </layer>
+        
+        <layer id="foreground" childLayout="vertical">
+        <panel id="panel-top" height="40%" width="100%"align="top" childLayout="horizontal" ></panel>
+          <panel id="panel-left" height="60%" width="100%"align="left" childLayout="horizontal" >
+            <panel id="blanck-panel" height="100%" width="10%" align="left" ></panel>
+            <panel id="panel_buttons" height="60%" width="25%" align="right"childLayout="vertical">
+                
+                
+                <panel id="panel_top" height="50%" width="50%" valign="center"childLayout="center">
+                    //start button
+                    <control name="button" label="Start" backgroundColor="#000f" id="StartButton" align="center" valign="center"visibleToMouse="true"  >
+                         
+                        <interact onClick="startGame(teamSelect)"/>
+
+                    </control>
+                </panel>
+                
+                <panel id="panel_center" height="40%" width="50%" valign="center" childLayout="center">
+                    <control name="button" label="Option" id="OptionButton" align="center"valign="center" visibleToMouse="true" >
+                        //option button
+                        
+                        <interact onClick="option(option)"/>
+                        
+                    </control>
+                </panel>
+                
+                <panel id="panel_bottom" height="50%" width="50%" valign="center" childLayout="center">
+                    
+                    //quit button
+                    <control name="button" label="Quit" id="QuitButton" align="center"valign="center"visibleToMouse="true" >
+                        
+                        
+                       <interact onClick="quitGame()"/>
+                    </control>
+                </panel>
+            </panel>
+           </panel>
+        </layer>
+    </screen>
+    
+    //team select
+    <screen id="teamSelect" controller="mygame.Main">
+        <layer id="background" childLayout="vertical" width="100%" height="100%">
+            <panel id="top panel" width="100%" height="25%" childLayout="vertical">
+                
+            </panel>
+            <panel id="mid panel" width="100%" height="50%" childLayout="horizontal">
+                
+                <panel id="left panel" width="20%" height="100%" childLayout="vertical">
+                
+                </panel>
+                
+                 <panel id="imagePanelP1" width="30%" height="50%" childLayout="horizontal">
+                
+                <control id="imageSelect1" name="imageSelect" width="80%" height="80%" 
+                         imageList="Interface/italy.png,Interface/Finland.png,Interface/China.png,Interface/USA.png,Interface/Sweden.png" >
+                </control>                               
+                 </panel>
+                 
+                 <panel id="imagePanelP2" width="30%" height="50%" childLayout="horizontal">
+                
+                <control id="imageSelect2" name="imageSelect" width="80%" height="80%" 
+                         imageList="Interface/italy.png,Interface/Finland.png,Interface/China.png,Interface/USA.png,Interface/Sweden.png" >
+                </control>       
+                
+                                       
+                 </panel>
+                 
+                 <control name="button" label ="confirm selection" id="confirmButton" align="center" valign="center" visibleToMouse='true'>
+                     
+                     <interact onClick= "teamSelection()"/>
+                 </control>
+                
+            </panel>
+           
+            
+        </layer>
+        
+        
+    </screen>
+    
+    
+    //hud
+    
+    <screen id="hud" controller="mygame.Main">
+         
+        <layer id="foreground" childLayout="vertical">
+            <panel id="panel_top1" width="100%" height="1%"  childLayout="horizontal">
+            </panel>
+            <panel id="panel_top2" width="25%" height="3%"  align="right" childLayout="horizontal">
+                <control name="label"  text="ITALY"  font="Interface/Fonts/GillSansUltraBold.fnt" width="50%" height="100%"/>
+                <control name="label"  text="0"  font="Interface/Fonts/GillSansUltraBold.fnt" width="50%" height="100%"/>
+            </panel>
+                
+                <panel id="panel_top3" width="25%" height="3%" align="right" childLayout="horizontal">
+                <control name="label"  text="CANADA" font="Interface/Fonts/GillSansUltraBold.fnt"  width="50%" height="100%"/>
+                <control name="label"  text="0"  font="Interface/Fonts/GillSansUltraBold.fnt" width="50%" height="100%"/>
+            </panel>
+                
+                
+                
+            
+            
+        </layer>
+    </screen>
+    //option screen
+    <screen id="option" controller="mygame.Main">
+         
+        <layer id="foreground" childLayout="vertical" >
+            <panel id="panel_top1" width="100%" height="15%"  childLayout="vertical">
+            </panel>
+            <panel id="buttons" width="100%" height="60%"  align="center" childLayout="vertical">
+                
+                
+                
+           
+            
+            <panel id="panel_top" height="33%" width="50%" align="center"childLayout="center">
+                   <control name="button" label="Sound" id="SoundButton" align="center"valign="center" visibleToMouse="true" >  
+                              <interact onClick="sound()"/>            
+                    </control>
+                </panel>
+                
+                <panel id="panel_center" height="33%" width="50%" align="center" childLayout="center">
+                    <control name="button" label="Main Menu" id="MenuButton" align="center"valign="center" visibleToMouse="true" > 
+                                 <interact onClick="mainMenu()"/>             
+                    </control>
+                </panel>
+                
+                <panel id="panel_bottom" height="33%" width="50%" align="center" childLayout="center">
+                    <control name="button" label="Quit" id="QuitButton" align="center"valign="center" visibleToMouse="true" >   
+                                  <interact onClick="quitGame()"/>       
+                    </control>
+                </panel>
+                
+                
+              </panel>
+                
+                
+            
+            
+        </layer>
+        
+        
+    </screen>
+    
+    <screen id="sound" controller="mygame.Main">
+         <layer id="foreground" childLayout="vertical" >
+             
+             <panel id="panel_center" height="25%" width="100" childLayout="vertical" align="center" >
+                 
+             </panel>
+             
+             <panel id="panel_center" height="50%" width="50%" childLayout="vertical" align="center" >
+                 
+                 <panel id="panel_slider" height="33%" width="100%" childLayout="vertical" align="center">
+                 <control id="sliderH" name="horizontalSlider" width="80%" />
+                 </panel>
+                 
+                 
+                 <panel id="panel_slider" height="33%" width="100%" childLayout="Horizontal" align="center" >
+                     
+                     <panel id="left_panel" height="100%" width="45%" childLayout="horizontal" align="left" >
+                     </panel>
+                <control id="checkBox" name="checkbox" label="sound on/off" align="center" /> 
+                  
+                <control name="label" text="Sound on/off"/>
+                 </panel>
+                 
+                 
+                 <panel id="panel_return" height="33%" width="100%" childLayout="Horizontal" align="center" >
+                     <panel id="left_panel" height="100%" width="45%" childLayout="horizontal" align="left" >
+                     </panel>
+                     <control id="return" name="button" label="return">
+                         <interact onClick="option(option)"/>
+                     </control>
+                 </panel>
+                 
+             </panel>
+         </layer>
+        
+    </screen>
+    
+    
+    
+</nifty>

@@ -1,6 +1,7 @@
 package mygame;
 
 import com.jme3.app.SimpleApplication;
+import com.jme3.audio.AudioNode;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.renderer.RenderManager;
@@ -25,6 +26,10 @@ import com.jme3.math.FastMath;
 import com.jme3.math.Matrix3f;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
+import com.jme3.niftygui.NiftyJmeDisplay;
+import com.jme3.post.FilterPostProcessor;
+import com.jme3.post.filters.CartoonEdgeFilter;
+import com.jme3.renderer.Caps;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.renderer.queue.RenderQueue.Bucket;
 import com.jme3.scene.Node;
@@ -32,12 +37,18 @@ import com.jme3.scene.Spatial;
 import com.jme3.scene.debug.Arrow;
 import com.jme3.scene.shape.Cylinder;
 import com.jme3.scene.shape.Sphere;
+import com.jme3.texture.Texture;
+import de.lessvoid.nifty.Nifty;
+import de.lessvoid.nifty.controls.ImageSelect;
+import de.lessvoid.nifty.screen.Screen;
+import de.lessvoid.nifty.screen.ScreenController;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.concurrent.TimeUnit;
 
-public class Main extends SimpleApplication {
+public class Main extends SimpleApplication implements ScreenController {
 
     private BulletAppState bulletAppState;
 
@@ -50,7 +61,7 @@ public class Main extends SimpleApplication {
     private Spatial floorScene;
     private RigidBodyControl sceneGeo;
 
-    private Geometry arrowGeo;
+    private Spatial arrowGeo;
 
     private Material dirtMat;
     private Material blue;
@@ -82,17 +93,52 @@ public class Main extends SimpleApplication {
 
     private float shotX = 0;
     private float shotY = 0;
+    private float velocityX;
+    private float velocityY;
+    
+    private Quaternion arrowRotation = new Quaternion();
+    private Quaternion firstArrowRotation = new Quaternion();
 
     boolean roundIsDone = true;
     boolean gameIsFinished = true;
+
+    private Boolean camStatus;
+    private Screen screen;
+    private AudioNode audio;
+    private Nifty nifty;
+    private Boolean unlockCommands = false;
+    private Boolean shotHasBeenSet = false;
+    
+    private FilterPostProcessor fpp;
 
     public static void main(String[] args) {
         Main app = new Main();
         app.start();
     }
 
+    public void Init_Nifty() {
+
+        NiftyJmeDisplay niftyDisplay = NiftyJmeDisplay.newNiftyJmeDisplay(
+                assetManager,
+                inputManager,
+                audioRenderer,
+                guiViewPort);
+        nifty = niftyDisplay.getNifty();
+        nifty.fromXml("Interface/HelloJme.xml", "start", this);
+
+        // attach the nifty display to the gui view port as a processor
+        guiViewPort.addProcessor(niftyDisplay);
+
+       
+      
+
+    }
+
     @Override
     public void simpleInitApp() {
+        
+          Init_Nifty();
+
         //set number of rounds
         scoreboard.setNumberOfRounds(10);
 
@@ -110,14 +156,28 @@ public class Main extends SimpleApplication {
         setScene();
         setMaterials();
         setCoordinates();
+        
 
-        Arrow arrow = new Arrow(new Vector3f(-5, 0, 0));
+
+//        Arrow arrow = new Arrow(new Vector3f(-1, 0, 0));
 
 //        arrow.setArrowExtent(new Vector3f(1,0,0));
-        arrowGeo = new Geometry("Arrow", arrow);
+//        arrowGeo = new Geometry("Arrow", arrow);
+        arrowGeo = assetManager.loadModel("Models/arrow.j3o");
         arrowGeo.setMaterial(blue);
         arrowGeo.setLocalTranslation(originRockPos.add(2, 2, 2));
         arrowGeo.setName("arrowGeo");
+        
+        
+        
+        
+        
+        
+        
+//        Quaternion arrowInitRot = new Quaternion();
+//        arrowInitRot.fromAngleAxis(FastMath.PI/2, new Vector3f(1,0,0));
+//        arrowInitRot.fromAngleAxis(FastMath.PI, new Vector3f(0,1,0));
+//        arrowGeo.setLocalRotation(arrowInitRot);
 
         //creation of command mapping
         inputManager.addMapping("throw", new MouseButtonTrigger(MouseInput.BUTTON_LEFT));
@@ -126,6 +186,7 @@ public class Main extends SimpleApplication {
         inputManager.addMapping("get", new KeyTrigger(KeyInput.KEY_F));
         inputManager.setMouseCursor(null);
         inputManager.setCursorVisible(true);
+        
 
         //creation of cylinder node for detection of collision inside house
         float cylinderRadius = centerPos.distance(extremity);
@@ -138,6 +199,12 @@ public class Main extends SimpleApplication {
         cylin.addControl(houseGhost);
         cylin.setLocalRotation(x90);
         cylin.setLocalTranslation(centerPos);
+        
+        Quaternion y180 = new Quaternion();
+        y180.fromAngleAxis(FastMath.PI, new Vector3f(0,1,0));
+        
+        firstArrowRotation = x90.mult(y180);
+        
 
         //setting materials to spatials
         cylin.setQueueBucket(Bucket.Translucent);
@@ -337,52 +404,69 @@ public class Main extends SimpleApplication {
     private ActionListener actionListenerThrow = new ActionListener() {
         @Override
         public void onAction(String name, boolean keyPressed, float tpf) {
-            if (name.equals("throw") && !keyPressed) {
-                throwRock(physTeam);
-                rootNode.getChild("arrowGeo").removeFromParent();
+            try{
+            
+                if (name.equals("throw") && !keyPressed && unlockCommands && shotHasBeenSet) {
+                    throwRock(physTeam);
+                    System.out.println("Throw");
+                    rootNode.getChild("arrowGeo").removeFromParent();
+                }
+                if (name.equals("stop") && !keyPressed && unlockCommands) {
+                    stopRock();
+                }
+                if (name.equals("throw") && keyPressed && unlockCommands) {
+                    setThrowValue();
+                    shotHasBeenSet = true;
+                    System.out.println("Set throw");
+                    rootNode.attachChild(arrowGeo);
+                }
+    //            if (name.equals("get") && !keyPressed){
+    //                setThrowValue();
+    //            }
+    //            if (name.equals("reset")) {
+    //                resetPos(rockTeam, originRockPos, rockPhy);
+    //            }
             }
-            if (name.equals("stop") && !keyPressed) {
-                stopRock();
+        
+            catch(NullPointerException ex){
+                System.out.print("t nul");
+
             }
-            if (name.equals("throw") && keyPressed) {
-                setThrowValue();
-                rootNode.attachChild(arrowGeo);
-            }
-//            if (name.equals("get") && !keyPressed){
-//                setThrowValue();
-//            }
-//            if (name.equals("reset")) {
-//                resetPos(rockTeam, originRockPos, rockPhy);
-//            }
         }
     };
+    
+    public void updateVelocityValue(){
+        float currentX = inputManager.getCursorPosition().x;
+        float currentY = inputManager.getCursorPosition().y;
+        
+        float tempVelocityX;
+        float tempVelocityY;
+        
+        if (shotX - currentX > 300) {
+                tempVelocityX = 300;
+            } else if (shotX - currentX < -300) {
+                tempVelocityX = -300;
+            } else {
+                tempVelocityX = shotX - currentX;
+            }
+
+        if (shotY - currentY > 200) {
+                tempVelocityY = 200;
+        } 
+        else if (shotY - currentY < 0) {
+                tempVelocityY = 0;
+        }
+        else{
+                tempVelocityY = shotY - currentY;
+        }
+        
+        velocityX = tempVelocityX/3;
+        velocityY = tempVelocityY/2;
+          
+    }
 
     public void throwRock(ArrayList<YLockControl> physTeam) {
         if (shotDone.get(physTeam.size() - 1) == false) {
-            float currentX = inputManager.getCursorPosition().x;
-            float currentY = inputManager.getCursorPosition().y;
-
-            float velocityX;
-            float velocityY;
-
-            if (shotX - currentX > 300) {
-                velocityX = 300;
-            } else if (shotX - currentX < -300) {
-                velocityX = -300;
-            } else {
-                velocityX = shotX - currentX;
-            }
-
-            if (shotY - currentY > 200) {
-                velocityY = 200;
-            } else if (shotY - currentY < 0) {
-                velocityY = 0;
-            } else {
-                velocityY = shotY - currentY;
-            }
-
-            velocityX = velocityX / 3;
-            velocityY = velocityY / 2;
 
             physTeam.get(physTeam.size() - 1).setLinearVelocity(new Vector3f(-velocityY, 0, -velocityX));
 
@@ -413,6 +497,8 @@ public class Main extends SimpleApplication {
         }
         return (allTrue == physTeam.size());
     }
+    
+  
 
     @Override
     public void simpleUpdate(float tpf) {
@@ -463,16 +549,31 @@ public class Main extends SimpleApplication {
                 physTeam.get(i).physicsTick(bulletAppState.getPhysicsSpace(), tpf);
 
             }
+            
+            updateVelocityValue();
+            
+            double angle = (velocityX/velocityY);
+            
+            Quaternion temp = new Quaternion();
+            temp.fromAngleAxis((float)Math.atan(angle), new Vector3f(0,0,-1));
+            
+            
+            arrowRotation = firstArrowRotation.mult(temp);
+            
+            arrowGeo.setLocalRotation(arrowRotation);
+            arrowGeo.setLocalScale(velocityY/20);
+
 
             Vector3f rockCamLocation = physTeam.get(physTeam.size() - 1).getPhysicsLocation().add(15, 5, 0);
             cam.setLocation(rockCamLocation);
 
             //listener for the left and right click action
-            inputManager.addListener(actionListenerThrow, "throw");
-            inputManager.addListener(actionListenerThrow, "stop");
-            inputManager.addListener(actionListenerResetRound, "resetRound");
-            inputManager.addListener(actionListenerThrow, "get");
-
+            
+                inputManager.addListener(actionListenerThrow, "throw");
+                inputManager.addListener(actionListenerThrow, "stop");
+                inputManager.addListener(actionListenerResetRound, "resetRound");
+                inputManager.addListener(actionListenerThrow, "get");
+            
             //roundIsDone is only to avoid this loop statement from be itterated every time and calling long methods to compute
             if (scoreboard.getTotalShots() == 8 && noMouvement(physTeam) && roundIsDone == true) {
                 for (int i = 0, j = 0; i < physTeam.size() && j < 4; i += 2, j++) {
@@ -547,5 +648,71 @@ public class Main extends SimpleApplication {
         Collections.fill(shotDone, Boolean.FALSE);
         shotDone.set(0, true);
 
+    }
+
+
+    @Override
+    public void bind(Nifty nifty, Screen screen) {
+        System.out.println("bind( " + screen.getScreenId() + ")");
+    }
+
+    @Override
+    public void onStartScreen() {
+        System.out.println("onStartScreen");
+    }
+
+    @Override
+    public void onEndScreen() {
+        System.out.println("onEndScreen");
+    }
+
+    public void quit() {
+        nifty.gotoScreen("end");
+
+    }
+
+    public void startGame(String nextScreen) {
+        System.out.print("startgame");
+
+        nifty.gotoScreen(nextScreen);
+        
+        
+       
+
+    }
+
+    public void teamSelection() {
+        
+        nifty.gotoScreen("hud");
+        
+        
+        unlockCommands = true;
+        
+
+       // ImageSelect select = screen.findNiftyControl("imageSelect", ImageSelect.class);
+       // int index = select.getSelectedImageIndex();
+        //System.out.print(index);
+        
+
+    }
+
+
+    public void option(String nextScreen) {
+        nifty.gotoScreen(nextScreen);
+        
+    }
+
+    public void mainMenu() {
+        nifty.gotoScreen("start");
+      
+    }
+
+    public void sound() {
+        nifty.gotoScreen("sound");
+    }
+
+    public void quitGame() {
+
+        System.exit(0);
     }
 }
