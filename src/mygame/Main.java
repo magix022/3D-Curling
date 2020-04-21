@@ -98,6 +98,7 @@ public class Main extends SimpleApplication implements ScreenController {
     private AudioNode audio;
     private Nifty nifty;
     private Boolean unlockCommands = false;
+    private Boolean shotHasBeenSet = false;
 
     public static void main(String[] args) {
         Main app = new Main();
@@ -160,6 +161,8 @@ public class Main extends SimpleApplication implements ScreenController {
         inputManager.addMapping("get", new KeyTrigger(KeyInput.KEY_F));
         inputManager.setMouseCursor(null);
         inputManager.setCursorVisible(true);
+        
+        
 
         //creation of cylinder node for detection of collision inside house
         float cylinderRadius = centerPos.distance(extremity);
@@ -373,8 +376,9 @@ public class Main extends SimpleApplication implements ScreenController {
         public void onAction(String name, boolean keyPressed, float tpf) {
             try{
             
-            if (name.equals("throw") && !keyPressed && unlockCommands) {
+            if (name.equals("throw") && !keyPressed && unlockCommands && shotHasBeenSet) {
                 throwRock(physTeam);
+                System.out.println("Throw");
                 rootNode.getChild("arrowGeo").removeFromParent();
             }
             if (name.equals("stop") && !keyPressed && unlockCommands) {
@@ -382,6 +386,8 @@ public class Main extends SimpleApplication implements ScreenController {
             }
             if (name.equals("throw") && keyPressed && unlockCommands) {
                 setThrowValue();
+                shotHasBeenSet = true;
+                System.out.println("Set throw");
                 rootNode.attachChild(arrowGeo);
             }
 //            if (name.equals("get") && !keyPressed){
@@ -458,6 +464,7 @@ public class Main extends SimpleApplication implements ScreenController {
 
     @Override
     public void simpleUpdate(float tpf) {
+//        System.out.println(unlockCommands);
         if (scoreboard.getRound() < scoreboard.getNumberOfRounds()) {
             if (shotDone.get(0) == true && physTeam.isEmpty()) {
                 createRock(1, 0, rockTeam1, physTeam, tpf);
@@ -510,11 +517,12 @@ public class Main extends SimpleApplication implements ScreenController {
             cam.setLocation(rockCamLocation);
 
             //listener for the left and right click action
-            inputManager.addListener(actionListenerThrow, "throw");
-            inputManager.addListener(actionListenerThrow, "stop");
-            inputManager.addListener(actionListenerResetRound, "resetRound");
-            inputManager.addListener(actionListenerThrow, "get");
-
+            
+                inputManager.addListener(actionListenerThrow, "throw");
+                inputManager.addListener(actionListenerThrow, "stop");
+                inputManager.addListener(actionListenerResetRound, "resetRound");
+                inputManager.addListener(actionListenerThrow, "get");
+            
             //roundIsDone is only to avoid this loop statement from be itterated every time and calling long methods to compute
             if (scoreboard.getTotalShots() == 8 && noMouvement(physTeam) && roundIsDone == true) {
                 for (int i = 0, j = 0; i < physTeam.size() && j < 4; i += 2, j++) {
@@ -625,7 +633,9 @@ public class Main extends SimpleApplication implements ScreenController {
     public void teamSelection() {
         
         nifty.gotoScreen("hud");
-        unlockCommand();
+        
+        
+        unlockCommands = true;
         
         
         
@@ -642,7 +652,7 @@ public class Main extends SimpleApplication implements ScreenController {
         try{
             
              
-        TimeUnit.SECONDS.sleep(5);
+//        TimeUnit.SECONDS.sleep(5);
         }
         catch(Exception ex){
             System.out.print("Delai exception");
