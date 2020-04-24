@@ -1,6 +1,7 @@
 package mygame;
 
 import com.jme3.app.SimpleApplication;
+import com.jme3.asset.TextureKey;
 import com.jme3.audio.AudioNode;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
@@ -19,17 +20,18 @@ import com.jme3.input.MouseInput;
 import com.jme3.input.controls.ActionListener;
 import com.jme3.input.controls.KeyTrigger;
 import com.jme3.input.controls.MouseButtonTrigger;
+import com.jme3.light.AmbientLight;
 import com.jme3.light.DirectionalLight;
+import com.jme3.light.PointLight;
+import com.jme3.light.SpotLight;
 import com.jme3.material.RenderState;
 import com.jme3.material.RenderState.BlendMode;
 import com.jme3.math.FastMath;
 import com.jme3.math.Matrix3f;
 import com.jme3.math.Quaternion;
+import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.niftygui.NiftyJmeDisplay;
-import com.jme3.post.FilterPostProcessor;
-import com.jme3.post.filters.CartoonEdgeFilter;
-import com.jme3.renderer.Caps;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.renderer.queue.RenderQueue.Bucket;
 import com.jme3.scene.Node;
@@ -61,11 +63,25 @@ public class Main extends SimpleApplication implements ScreenController {
     private Spatial floorScene;
     private RigidBodyControl sceneGeo;
 
-    private Spatial arrowGeo;
+    private Geometry arrowGeo;
 
-    private Material dirtMat;
-    private Material blue;
     private Material transMat;
+
+    //Material for the scene
+    private Material iceMat;
+    private Material sideBoardsMat;
+    private Material topBoardsMat;
+    private Material wallsMat;
+    private Material roofMat;
+    private Material bigRingMat;
+    private Material smallRingMat;
+    private Material linesMat;
+    private Material standsMat1;
+    private Material standsMat2;
+    private Material sideRoofMat;
+
+    private Material blueMat;
+    private Material redMat;
 
     private Node sceneNode;
 
@@ -93,11 +109,6 @@ public class Main extends SimpleApplication implements ScreenController {
 
     private float shotX = 0;
     private float shotY = 0;
-    private float velocityX;
-    private float velocityY;
-    
-    private Quaternion arrowRotation = new Quaternion();
-    private Quaternion firstArrowRotation = new Quaternion();
 
     boolean roundIsDone = true;
     boolean gameIsFinished = true;
@@ -108,8 +119,6 @@ public class Main extends SimpleApplication implements ScreenController {
     private Nifty nifty;
     private Boolean unlockCommands = false;
     private Boolean shotHasBeenSet = false;
-    
-    private FilterPostProcessor fpp;
 
     public static void main(String[] args) {
         Main app = new Main();
@@ -129,15 +138,15 @@ public class Main extends SimpleApplication implements ScreenController {
         // attach the nifty display to the gui view port as a processor
         guiViewPort.addProcessor(niftyDisplay);
 
-       
-      
-
     }
 
     @Override
     public void simpleInitApp() {
-        
-          Init_Nifty();
+
+        Init_Nifty();
+        setMaterials();
+        setScene();
+        setCoordinates();
 
         //set number of rounds
         scoreboard.setNumberOfRounds(10);
@@ -153,31 +162,13 @@ public class Main extends SimpleApplication implements ScreenController {
         stateManager.attach(bulletAppState);
         bulletAppState.getPhysicsSpace().setGravity(Vector3f.ZERO);
 
-        setScene();
-        setMaterials();
-        setCoordinates();
-        
-
-
-//        Arrow arrow = new Arrow(new Vector3f(-1, 0, 0));
+        Arrow arrow = new Arrow(new Vector3f(-5, 0, 0));
 
 //        arrow.setArrowExtent(new Vector3f(1,0,0));
-//        arrowGeo = new Geometry("Arrow", arrow);
-        arrowGeo = assetManager.loadModel("Models/arrow.j3o");
-        arrowGeo.setMaterial(blue);
+        arrowGeo = new Geometry("Arrow", arrow);
+        arrowGeo.setMaterial(blueMat);
         arrowGeo.setLocalTranslation(originRockPos.add(2, 2, 2));
         arrowGeo.setName("arrowGeo");
-        
-        
-        
-        
-        
-        
-        
-//        Quaternion arrowInitRot = new Quaternion();
-//        arrowInitRot.fromAngleAxis(FastMath.PI/2, new Vector3f(1,0,0));
-//        arrowInitRot.fromAngleAxis(FastMath.PI, new Vector3f(0,1,0));
-//        arrowGeo.setLocalRotation(arrowInitRot);
 
         //creation of command mapping
         inputManager.addMapping("throw", new MouseButtonTrigger(MouseInput.BUTTON_LEFT));
@@ -186,7 +177,6 @@ public class Main extends SimpleApplication implements ScreenController {
         inputManager.addMapping("get", new KeyTrigger(KeyInput.KEY_F));
         inputManager.setMouseCursor(null);
         inputManager.setCursorVisible(true);
-        
 
         //creation of cylinder node for detection of collision inside house
         float cylinderRadius = centerPos.distance(extremity);
@@ -199,12 +189,6 @@ public class Main extends SimpleApplication implements ScreenController {
         cylin.addControl(houseGhost);
         cylin.setLocalRotation(x90);
         cylin.setLocalTranslation(centerPos);
-        
-        Quaternion y180 = new Quaternion();
-        y180.fromAngleAxis(FastMath.PI, new Vector3f(0,1,0));
-        
-        firstArrowRotation = x90.mult(y180);
-        
 
         //setting materials to spatials
         cylin.setQueueBucket(Bucket.Translucent);
@@ -220,22 +204,85 @@ public class Main extends SimpleApplication implements ScreenController {
         bulletAppState.getPhysicsSpace().add(houseGhost);
 
         //camera parameters
-//        flyCam.setMoveSpeed(50f);
+        flyCam.setMoveSpeed(50f);
         flyCam.setDragToRotate(true);
         flyCam.setEnabled(false);
         cam.lookAtDirection(new Vector3f(-1, -0.3f, 0), new Vector3f(0, 1, 0));
     }
 
     public void setMaterials() {
-        dirtMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        dirtMat.setTexture("ColorMap", assetManager.loadTexture("Textures/dirt.jpg"));
-
-        blue = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        blue.setColor("Color", ColorRGBA.Blue);
-
         transMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         transMat.setColor("Color", new ColorRGBA(1, 0, 0, 0f));
         transMat.getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
+
+        //Texture for the ice
+        iceMat = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
+        iceMat.setTexture("DiffuseMap", assetManager.loadTexture("Textures/iceMat.jpg"));
+//        ice.setReceivesShadows(true);
+
+        //Texture for rink boards
+        sideBoardsMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        Texture sideBoardsTex = assetManager.loadTexture(new TextureKey("Textures/sideBoardsMat.jpg", false));
+        sideBoardsTex.setWrap(Texture.WrapMode.Repeat);
+        sideBoardsMat.setTexture("ColorMap", sideBoardsTex);
+
+        topBoardsMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        Texture topBoardsTex = assetManager.loadTexture(new TextureKey("Textures/blueMat.jpg", false));
+        topBoardsTex.setWrap(Texture.WrapMode.Repeat);
+        topBoardsMat.setTexture("ColorMap", topBoardsTex);
+
+        //Texture for rink walls
+        wallsMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        Texture wallsTex = assetManager.loadTexture(new TextureKey("Textures/wallsMat.jpg", false));
+        wallsTex.setWrap(Texture.WrapMode.Repeat);
+        wallsMat.setTexture("ColorMap", wallsTex);
+
+        //Texture for roof
+        roofMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        Texture roofTex = assetManager.loadTexture(new TextureKey("Textures/roofMat.jpg", false));
+        roofTex.setWrap(Texture.WrapMode.Repeat);
+        roofMat.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Off);
+        roofMat.setTexture("ColorMap", roofTex);
+
+        //Texture for roof walls
+        sideRoofMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        Texture sideRoofTex = assetManager.loadTexture(new TextureKey("Textures/sideRoofMat.jpg", false));
+        sideRoofTex.setWrap(Texture.WrapMode.Repeat);
+        sideRoofMat.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Off);
+        sideRoofMat.setTexture("ColorMap", sideRoofTex);
+
+        //Textures for house circles
+        bigRingMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        Texture bigRingTex = assetManager.loadTexture(new TextureKey("Textures/bigRingMat.jpg", false));
+        bigRingTex.setWrap(Texture.WrapMode.Repeat);
+        bigRingMat.setTexture("ColorMap", bigRingTex);
+
+        smallRingMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        Texture smallRingTex = assetManager.loadTexture(new TextureKey("Textures/smallRingMat.jpg", false));
+        smallRingTex.setWrap(Texture.WrapMode.Repeat);
+        smallRingMat.setTexture("ColorMap", smallRingTex);
+
+        //Texture for rink stands
+        standsMat1 = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        Texture standsTex1 = assetManager.loadTexture(new TextureKey("Textures/standsMat1.jpg", false));
+        standsTex1.setWrap(Texture.WrapMode.Repeat);
+        standsMat1.setTexture("ColorMap", standsTex1);
+
+        standsMat2 = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        Texture standsTex2 = assetManager.loadTexture(new TextureKey("Textures/standsMat2.jpg", false));
+        standsTex2.setWrap(Texture.WrapMode.Repeat);
+        standsMat2.setTexture("ColorMap", standsTex2);
+
+        //Texture for rink lines
+        linesMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        linesMat.setTexture("ColorMap", assetManager.loadTexture("Textures/linesMat.jpg"));
+
+        //materials for the rocks
+        redMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        redMat.setTexture("ColorMap", assetManager.loadTexture("Textures/redMat.jpg"));
+
+        blueMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        blueMat.setTexture("ColorMap", assetManager.loadTexture("Textures/blueMat.jpg"));
     }
 
     public void setScene() {
@@ -244,6 +291,7 @@ public class Main extends SimpleApplication implements ScreenController {
 
         floorScene.setLocalTranslation(Vector3f.ZERO);
         floorScene.addControl(sceneGeo);
+
         sceneGeo.setPhysicsLocation(floorScene.getLocalTranslation());
         sceneGeo.setKinematicSpatial(false);
         //bounce
@@ -252,11 +300,117 @@ public class Main extends SimpleApplication implements ScreenController {
 
     public void setCoordinates() {
         sceneNode = (Node) floorScene;
+
+        //Material for the rink's ice
+        sceneNode.getChild("Ice").setMaterial(iceMat);
+
+        //Materials for the rink's walls
+        sceneNode.getChild("rink_entrance").setMaterial(sideBoardsMat);
+        ((Geometry) sceneNode.getChild("rink_entrance")).getMesh().scaleTextureCoordinates(new Vector2f(2.8f, 4f));
+
+        sceneNode.getChild("entrance_wall").setMaterial(wallsMat);
+        ((Geometry) sceneNode.getChild("entrance_wall")).getMesh().scaleTextureCoordinates(new Vector2f(1, 4));
+        sceneNode.getChild("back_wall").setMaterial(wallsMat);
+        ((Geometry) sceneNode.getChild("back_wall")).getMesh().scaleTextureCoordinates(new Vector2f(1, 4));
+        sceneNode.getChild("left_wall").setMaterial(wallsMat);
+        ((Geometry) sceneNode.getChild("left_wall")).getMesh().scaleTextureCoordinates(new Vector2f(1, 40));
+        sceneNode.getChild("right_wall").setMaterial(wallsMat);
+        ((Geometry) sceneNode.getChild("right_wall")).getMesh().scaleTextureCoordinates(new Vector2f(1, 40));
+
+        //Materials for the rink's roof
+        sceneNode.getChild("back_wall_roof").setMaterial(sideRoofMat);
+        ((Geometry) sceneNode.getChild("back_wall_roof")).getMesh().scaleTextureCoordinates(new Vector2f(2, 2));
+        sceneNode.getChild("entrance_wall_roof").setMaterial(sideRoofMat);
+        ((Geometry) sceneNode.getChild("entrance_wall_roof")).getMesh().scaleTextureCoordinates(new Vector2f(2, 2));
+
+        sceneNode.getChild("roof").setMaterial(roofMat);
+        ((Geometry) sceneNode.getChild("roof")).getMesh().scaleTextureCoordinates(new Vector2f(5, 10));
+
+        //Materials for the house rings
+        sceneNode.getChild("big_ring_backHouse").setMaterial(bigRingMat);
+        ((Geometry) sceneNode.getChild("big_ring_backHouse")).getMesh().scaleTextureCoordinates(new Vector2f(40, 40));
+        sceneNode.getChild("big_ring_frontHouse").setMaterial(bigRingMat);
+        ((Geometry) sceneNode.getChild("big_ring_frontHouse")).getMesh().scaleTextureCoordinates(new Vector2f(40, 40));
+
+        sceneNode.getChild("small_ring_backHouse").setMaterial(smallRingMat);
+        ((Geometry) sceneNode.getChild("small_ring_backHouse")).getMesh().scaleTextureCoordinates(new Vector2f(40, 40));
+        sceneNode.getChild("small_ring_frontHouse").setMaterial(smallRingMat);
+        ((Geometry) sceneNode.getChild("small_ring_frontHouse")).getMesh().scaleTextureCoordinates(new Vector2f(40, 40));
+
+        //Materials for the rink lines
+        sceneNode.getChild("line_middle_frontHouse").setMaterial(linesMat);
+        sceneNode.getChild("line_end_frontHouse").setMaterial(linesMat);
+        sceneNode.getChild("line_middle_rink").setMaterial(linesMat);
+        sceneNode.getChild("line_middle_backHouse").setMaterial(linesMat);
+        sceneNode.getChild("line_end_backHouse").setMaterial(linesMat);
+        sceneNode.getChild("line_start_backHouse").setMaterial(linesMat);
+        sceneNode.getChild("line_start_frontHouse").setMaterial(linesMat);
+
+        //Materials for the boards
+        sceneNode.getChild("top_right_board").setMaterial(topBoardsMat);
+        sceneNode.getChild("top_left_board").setMaterial(topBoardsMat);
+
+        sceneNode.getChild("right_board").setMaterial(sideBoardsMat);
+        ((Geometry) sceneNode.getChild("right_board")).getMesh().scaleTextureCoordinates(new Vector2f(2.8f, 90f));
+        sceneNode.getChild("left_board").setMaterial(sideBoardsMat);
+        ((Geometry) sceneNode.getChild("left_board")).getMesh().scaleTextureCoordinates(new Vector2f(2.8f, 90f));
+
+        //Materials for the stands
+        sceneNode.getChild("step1_right_stands").setMaterial(standsMat2);
+        ((Geometry) sceneNode.getChild("step1_right_stands")).getMesh().scaleTextureCoordinates(new Vector2f(3, 100));
+        sceneNode.getChild("step2_right_stands").setMaterial(standsMat1);
+        ((Geometry) sceneNode.getChild("step2_right_stands")).getMesh().scaleTextureCoordinates(new Vector2f(3, 100));
+        sceneNode.getChild("step3_right_stands").setMaterial(standsMat2);
+        ((Geometry) sceneNode.getChild("step3_right_stands")).getMesh().scaleTextureCoordinates(new Vector2f(3, 100));
+        sceneNode.getChild("step4_right_stands").setMaterial(standsMat1);
+        ((Geometry) sceneNode.getChild("step4_right_stands")).getMesh().scaleTextureCoordinates(new Vector2f(3, 100));
+
+        sceneNode.getChild("step1_left_stands").setMaterial(standsMat2);
+        ((Geometry) sceneNode.getChild("step1_left_stands")).getMesh().scaleTextureCoordinates(new Vector2f(3, 100));
+        sceneNode.getChild("step2_left_stands").setMaterial(standsMat1);
+        ((Geometry) sceneNode.getChild("step2_left_stands")).getMesh().scaleTextureCoordinates(new Vector2f(3, 100));
+        sceneNode.getChild("step3_left_stands").setMaterial(standsMat2);
+        ((Geometry) sceneNode.getChild("step3_left_stands")).getMesh().scaleTextureCoordinates(new Vector2f(3, 100));
+        sceneNode.getChild("step4_left_stands").setMaterial(standsMat1);
+        ((Geometry) sceneNode.getChild("step4_left_stands")).getMesh().scaleTextureCoordinates(new Vector2f(3, 100));
+
         originRockPos = sceneNode.getChild("Origin").getLocalTranslation();
         camView = sceneNode.getChild("camView").getLocalTranslation();
         centerPos = sceneNode.getChild("Center").getLocalTranslation();
         extremity = sceneNode.getChild("Extremity").getLocalTranslation();
         //camPos = sceneNode.getChild("camPos").getLocalTranslation();
+
+        sceneNode.getChild("big_ring_backHouse").removeControl(sceneGeo);
+        sceneNode.getChild("big_ring_backHouse").move(0, 0.5f, 0);
+
+        sceneNode.getChild("big_ring_frontHouse").removeControl(sceneGeo);
+        sceneNode.getChild("big_ring_frontHouse").move(0, 0.5f, 0);
+
+        sceneNode.getChild("small_ring_backHouse").removeControl(sceneGeo);
+        sceneNode.getChild("small_ring_backHouse").move(0, 0.5f, 0);
+
+        sceneNode.getChild("small_ring_frontHouse").removeControl(sceneGeo);
+        sceneNode.getChild("small_ring_frontHouse").move(0, 0.5f, 0);
+
+        //Add light to the scene
+        AmbientLight al = new AmbientLight();
+        al.setColor(ColorRGBA.White.mult(0.6f));
+        rootNode.addLight(al);
+
+//        for (int i = 0; i < 15; i++) {
+//            SpotLight spot = new SpotLight();
+//            spot.setSpotRange(100f);
+//            spot.setSpotInnerAngle(0f * FastMath.DEG_TO_RAD);
+//            spot.setSpotOuterAngle(89f * FastMath.DEG_TO_RAD);
+//            spot.setColor(ColorRGBA.White.mult(1.3f));
+//            if (i % 2 == 0) {
+//                spot.setPosition(new Vector3f((10*i), 0, -10));
+//            } else {
+//                spot.setPosition(new Vector3f((-10*i), 0, -10));
+//            }
+//            spot.setDirection(new Vector3f(0, -1, 0));
+//            rootNode.addLight(spot);
+//        }
     }
 
     public void getDistanceFromCenter(Vector3f centerPos) {
@@ -372,7 +526,13 @@ public class Main extends SimpleApplication implements ScreenController {
         Rock rock = new Rock(team);
         rock.setRockModel(assetManager.loadModel(rock.getModelPath()));
         rock.getRockModel().setLocalTranslation(originRockPos.add(2, 0, 2f));
-        rock.getRockModel().setMaterial(dirtMat);
+
+        if (team == 1) {
+            rock.getRockModel().setMaterial(redMat);
+        } else {
+            rock.getRockModel().setMaterial(blueMat);
+        }
+
         rootNode.attachChild(rock.getRockModel());
 
         YLockControl rockPhy = new YLockControl(1f);
@@ -387,11 +547,6 @@ public class Main extends SimpleApplication implements ScreenController {
         return rock;
     }
 
-    //ÉMILE:
-    //on dirait que ya parfois des bugs avec le spacebar quand je rajoute la 
-    //condition noMouvement(physTeam) dans le if statement ici
-    //laffaire c que je dois absolument mettre cette condition la sinon tu peux skip
-    //a la prochaine manche sans le calcul du score se faque et que les rockes arretent de bouger
     private ActionListener actionListenerResetRound = new ActionListener() {
         @Override
         public void onAction(String name, boolean keyPressed, float tpf) {
@@ -404,8 +559,8 @@ public class Main extends SimpleApplication implements ScreenController {
     private ActionListener actionListenerThrow = new ActionListener() {
         @Override
         public void onAction(String name, boolean keyPressed, float tpf) {
-            try{
-            
+            try {
+
                 if (name.equals("throw") && !keyPressed && unlockCommands && shotHasBeenSet) {
                     throwRock(physTeam);
                     System.out.println("Throw");
@@ -420,53 +575,45 @@ public class Main extends SimpleApplication implements ScreenController {
                     System.out.println("Set throw");
                     rootNode.attachChild(arrowGeo);
                 }
-    //            if (name.equals("get") && !keyPressed){
-    //                setThrowValue();
-    //            }
-    //            if (name.equals("reset")) {
-    //                resetPos(rockTeam, originRockPos, rockPhy);
-    //            }
-            }
-        
-            catch(NullPointerException ex){
+//            if (name.equals("get") && !keyPressed){
+//                setThrowValue();
+//            }
+//            if (name.equals("reset")) {
+//                resetPos(rockTeam, originRockPos, rockPhy);
+//            }
+            } catch (NullPointerException ex) {
                 System.out.print("t nul");
 
             }
         }
     };
-    
-    public void updateVelocityValue(){
-        float currentX = inputManager.getCursorPosition().x;
-        float currentY = inputManager.getCursorPosition().y;
-        
-        float tempVelocityX;
-        float tempVelocityY;
-        
-        if (shotX - currentX > 300) {
-                tempVelocityX = 300;
-            } else if (shotX - currentX < -300) {
-                tempVelocityX = -300;
-            } else {
-                tempVelocityX = shotX - currentX;
-            }
-
-        if (shotY - currentY > 200) {
-                tempVelocityY = 200;
-        } 
-        else if (shotY - currentY < 0) {
-                tempVelocityY = 0;
-        }
-        else{
-                tempVelocityY = shotY - currentY;
-        }
-        
-        velocityX = tempVelocityX/3;
-        velocityY = tempVelocityY/2;
-          
-    }
 
     public void throwRock(ArrayList<YLockControl> physTeam) {
         if (shotDone.get(physTeam.size() - 1) == false) {
+            float currentX = inputManager.getCursorPosition().x;
+            float currentY = inputManager.getCursorPosition().y;
+
+            float velocityX;
+            float velocityY;
+
+            if (shotX - currentX > 300) {
+                velocityX = 300;
+            } else if (shotX - currentX < -300) {
+                velocityX = -300;
+            } else {
+                velocityX = shotX - currentX;
+            }
+
+            if (shotY - currentY > 200) {
+                velocityY = 200;
+            } else if (shotY - currentY < 0) {
+                velocityY = 0;
+            } else {
+                velocityY = shotY - currentY;
+            }
+
+            velocityX = velocityX / 3;
+            velocityY = velocityY / 2;
 
             physTeam.get(physTeam.size() - 1).setLinearVelocity(new Vector3f(-velocityY, 0, -velocityX));
 
@@ -497,11 +644,10 @@ public class Main extends SimpleApplication implements ScreenController {
         }
         return (allTrue == physTeam.size());
     }
-    
-  
 
     @Override
     public void simpleUpdate(float tpf) {
+//        System.out.println(unlockCommands);
         if (scoreboard.getRound() < scoreboard.getNumberOfRounds()) {
             if (shotDone.get(0) == true && physTeam.isEmpty()) {
                 createRock(1, 0, rockTeam1, physTeam, tpf);
@@ -549,31 +695,16 @@ public class Main extends SimpleApplication implements ScreenController {
                 physTeam.get(i).physicsTick(bulletAppState.getPhysicsSpace(), tpf);
 
             }
-            
-            updateVelocityValue();
-            
-            double angle = (velocityX/velocityY);
-            
-            Quaternion temp = new Quaternion();
-            temp.fromAngleAxis((float)Math.atan(angle), new Vector3f(0,0,-1));
-            
-            
-            arrowRotation = firstArrowRotation.mult(temp);
-            
-            arrowGeo.setLocalRotation(arrowRotation);
-            arrowGeo.setLocalScale(velocityY/20);
-
 
             Vector3f rockCamLocation = physTeam.get(physTeam.size() - 1).getPhysicsLocation().add(15, 5, 0);
             cam.setLocation(rockCamLocation);
 
             //listener for the left and right click action
-            
-                inputManager.addListener(actionListenerThrow, "throw");
-                inputManager.addListener(actionListenerThrow, "stop");
-                inputManager.addListener(actionListenerResetRound, "resetRound");
-                inputManager.addListener(actionListenerThrow, "get");
-            
+            inputManager.addListener(actionListenerThrow, "throw");
+            inputManager.addListener(actionListenerThrow, "stop");
+            inputManager.addListener(actionListenerResetRound, "resetRound");
+            inputManager.addListener(actionListenerThrow, "get");
+
             //roundIsDone is only to avoid this loop statement from be itterated every time and calling long methods to compute
             if (scoreboard.getTotalShots() == 8 && noMouvement(physTeam) && roundIsDone == true) {
                 for (int i = 0, j = 0; i < physTeam.size() && j < 4; i += 2, j++) {
@@ -650,7 +781,6 @@ public class Main extends SimpleApplication implements ScreenController {
 
     }
 
-
     @Override
     public void bind(Nifty nifty, Screen screen) {
         System.out.println("bind( " + screen.getScreenId() + ")");
@@ -675,36 +805,40 @@ public class Main extends SimpleApplication implements ScreenController {
         System.out.print("startgame");
 
         nifty.gotoScreen(nextScreen);
-        
-        
-       
 
     }
 
     public void teamSelection() {
-        
-        nifty.gotoScreen("hud");
-        
-        
-        unlockCommands = true;
-        
 
-       // ImageSelect select = screen.findNiftyControl("imageSelect", ImageSelect.class);
-       // int index = select.getSelectedImageIndex();
+        nifty.gotoScreen("hud");
+
+        unlockCommands = true;
+
+        // ImageSelect select = screen.findNiftyControl("imageSelect", ImageSelect.class);
+        // int index = select.getSelectedImageIndex();
         //System.out.print(index);
-        
+    }
+
+    public void unlockCommand() {
+
+        try {
+
+//        TimeUnit.SECONDS.sleep(5);
+        } catch (Exception ex) {
+            System.out.print("Delai exception");
+        }
+        unlockCommands = true;
 
     }
 
-
     public void option(String nextScreen) {
         nifty.gotoScreen(nextScreen);
-        
+
     }
 
     public void mainMenu() {
         nifty.gotoScreen("start");
-      
+
     }
 
     public void sound() {
@@ -712,7 +846,6 @@ public class Main extends SimpleApplication implements ScreenController {
     }
 
     public void quitGame() {
-
         System.exit(0);
     }
 }
