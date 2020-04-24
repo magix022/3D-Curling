@@ -173,7 +173,7 @@ public class Main extends SimpleApplication implements ScreenController {
 //        arrowGeo = new Geometry("Arrow", arrow);
         arrowGeo = assetManager.loadModel("Models/arrow.j3o");
         arrowGeo.setMaterial(blueMat);
-        arrowGeo.setLocalTranslation(originRockPos.add(2, 2, 2));
+        arrowGeo.setLocalTranslation(originRockPos.add(2, 1, 2));
         arrowGeo.setName("arrowGeo");
 
         //creation of command mapping
