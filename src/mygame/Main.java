@@ -63,7 +63,7 @@ public class Main extends SimpleApplication implements ScreenController {
     private Spatial floorScene;
     private RigidBodyControl sceneGeo;
 
-    private Geometry arrowGeo;
+    private Spatial arrowGeo;
 
     private Material transMat;
 
@@ -109,6 +109,11 @@ public class Main extends SimpleApplication implements ScreenController {
 
     private float shotX = 0;
     private float shotY = 0;
+    private float velocityX;
+    private float velocityY;
+    
+    private Quaternion arrowRotation = new Quaternion();
+    private Quaternion firstArrowRotation = new Quaternion();
 
     boolean roundIsDone = true;
     boolean gameIsFinished = true;
@@ -165,7 +170,8 @@ public class Main extends SimpleApplication implements ScreenController {
         Arrow arrow = new Arrow(new Vector3f(-5, 0, 0));
 
 //        arrow.setArrowExtent(new Vector3f(1,0,0));
-        arrowGeo = new Geometry("Arrow", arrow);
+//        arrowGeo = new Geometry("Arrow", arrow);
+        arrowGeo = assetManager.loadModel("Models/arrow.j3o");
         arrowGeo.setMaterial(blueMat);
         arrowGeo.setLocalTranslation(originRockPos.add(2, 2, 2));
         arrowGeo.setName("arrowGeo");
@@ -189,6 +195,10 @@ public class Main extends SimpleApplication implements ScreenController {
         cylin.addControl(houseGhost);
         cylin.setLocalRotation(x90);
         cylin.setLocalTranslation(centerPos);
+        
+        Quaternion y180 = new Quaternion();
+        y180.fromAngleAxis(FastMath.PI, new Vector3f(0,1,0));
+        firstArrowRotation = x90.mult(y180);
 
         //setting materials to spatials
         cylin.setQueueBucket(Bucket.Translucent);
@@ -587,33 +597,39 @@ public class Main extends SimpleApplication implements ScreenController {
             }
         }
     };
+    
+    public void updateVelocityValue(){
+        float currentX = inputManager.getCursorPosition().x;
+        float currentY = inputManager.getCursorPosition().y;
+        
+        float tempVelocityX;
+        float tempVelocityY;
+        
+        if (shotX - currentX > 300) {
+                tempVelocityX = 300;
+            } else if (shotX - currentX < -300) {
+                tempVelocityX = -300;
+            } else {
+                tempVelocityX = shotX - currentX;
+            }
+
+        if (shotY - currentY > 200) {
+                tempVelocityY = 200;
+        } 
+        else if (shotY - currentY < 0) {
+                tempVelocityY = 0;
+        }
+        else{
+                tempVelocityY = shotY - currentY;
+        }
+        
+        velocityX = tempVelocityX/3;
+        velocityY = tempVelocityY/2;
+          
+    }
 
     public void throwRock(ArrayList<YLockControl> physTeam) {
         if (shotDone.get(physTeam.size() - 1) == false) {
-            float currentX = inputManager.getCursorPosition().x;
-            float currentY = inputManager.getCursorPosition().y;
-
-            float velocityX;
-            float velocityY;
-
-            if (shotX - currentX > 300) {
-                velocityX = 300;
-            } else if (shotX - currentX < -300) {
-                velocityX = -300;
-            } else {
-                velocityX = shotX - currentX;
-            }
-
-            if (shotY - currentY > 200) {
-                velocityY = 200;
-            } else if (shotY - currentY < 0) {
-                velocityY = 0;
-            } else {
-                velocityY = shotY - currentY;
-            }
-
-            velocityX = velocityX / 3;
-            velocityY = velocityY / 2;
 
             physTeam.get(physTeam.size() - 1).setLinearVelocity(new Vector3f(-velocityY, 0, -velocityX));
 
@@ -695,6 +711,19 @@ public class Main extends SimpleApplication implements ScreenController {
                 physTeam.get(i).physicsTick(bulletAppState.getPhysicsSpace(), tpf);
 
             }
+            
+            updateVelocityValue();
+
+            double angle = (velocityX/velocityY);
+
+            Quaternion temp = new Quaternion();
+            temp.fromAngleAxis((float)Math.atan(angle), new Vector3f(0,0,-1));
+
+
+            arrowRotation = firstArrowRotation.mult(temp);
+
+            arrowGeo.setLocalRotation(arrowRotation);
+            arrowGeo.setLocalScale(velocityY/20);
 
             Vector3f rockCamLocation = physTeam.get(physTeam.size() - 1).getPhysicsLocation().add(15, 5, 0);
             cam.setLocation(rockCamLocation);
