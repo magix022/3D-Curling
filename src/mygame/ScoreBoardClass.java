@@ -13,6 +13,7 @@ public class ScoreBoardClass {
     String rockModelPath;
     int[] team1RoundScore;
     int[] team2RoundScore;
+    int hammer;
 
     public ScoreBoardClass() {
     }
@@ -100,6 +101,86 @@ public class ScoreBoardClass {
         team2TotalScore = 0;
         for (int i = 0; i < team2RoundScore.length; i++) {
             team2TotalScore += team2RoundScore[i];
+        }
+    }
+
+    public void setHammer(int hammer) {
+        this.hammer = hammer;
+    }
+
+    public int getHammer() {
+        if (getRound() == 0) {
+            return this.hammer;
+        } else if (getTeam2RoundScore(getRound() - 1) > getTeam1RoundScore(getRound() - 1)) {
+            return 2;
+        } else if (getTeam2RoundScore(getRound() - 1) < getTeam1RoundScore(getRound() - 1)) {
+            return 1;
+        } else {
+            if (getRound() == 1) {
+                return this.hammer;
+            } else if (getTeam2RoundScore(getRound() - 2) > getTeam1RoundScore(getRound() - 2)) {
+                return 2;
+            } else if (getTeam2RoundScore(getRound() - 2) < getTeam1RoundScore(getRound() - 2)) {
+                return 1;
+            } else {
+                if (getRound() == 2) {
+                    return this.hammer;
+                } else if (getTeam2RoundScore(getRound() - 3) > getTeam1RoundScore(getRound() - 3)) {
+                    return 2;
+                } else if (getTeam2RoundScore(getRound() - 3) < getTeam1RoundScore(getRound() - 3)) {
+                    return 1;
+                } else {
+                    if (getRound() == 3) {
+                        return this.hammer;
+                    } else if (getTeam2RoundScore(getRound() - 4) > getTeam1RoundScore(getRound() - 4)) {
+                        return 2;
+                    } else if (getTeam2RoundScore(getRound() - 4) < getTeam1RoundScore(getRound() - 4)) {
+                        return 1;
+                    } else {
+                        if (getRound() == 4) {
+                            return this.hammer;
+                        } else if (getTeam2RoundScore(getRound() - 5) > getTeam1RoundScore(getRound() - 5)) {
+                            return 2;
+                        } else if (getTeam2RoundScore(getRound() - 5) < getTeam1RoundScore(getRound() - 5)) {
+                            return 1;
+                        } else {
+                            if (getRound() == 5) {
+                                return this.hammer;
+                            } else if (getTeam2RoundScore(getRound() - 6) > getTeam1RoundScore(getRound() - 6)) {
+                                return 2;
+                            } else if (getTeam2RoundScore(getRound() - 6) < getTeam1RoundScore(getRound() - 6)) {
+                                return 1;
+                            } else {
+                                if (getRound() == 6) {
+                                    return this.hammer;
+                                } else if (getTeam2RoundScore(getRound() - 7) > getTeam1RoundScore(getRound() - 7)) {
+                                    return 2;
+                                } else if (getTeam2RoundScore(getRound() - 7) < getTeam1RoundScore(getRound() - 7)) {
+                                    return 1;
+                                } else {
+                                    if (getRound() == 7) {
+                                        return this.hammer;
+                                    } else if (getTeam2RoundScore(getRound() - 8) > getTeam1RoundScore(getRound() - 8)) {
+                                        return 2;
+                                    } else if (getTeam2RoundScore(getRound() - 8) < getTeam1RoundScore(getRound() - 8)) {
+                                        return 1;
+                                    } else {
+                                        if (getRound() == 8) {
+                                            return this.hammer;
+                                        } else if (getTeam2RoundScore(getRound() - 9) > getTeam1RoundScore(getRound() - 9)) {
+                                            return 2;
+                                        } else if (getTeam2RoundScore(getRound() - 9) < getTeam1RoundScore(getRound() - 9)) {
+                                            return 1;
+                                        } else {
+                                            return this.hammer;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }
