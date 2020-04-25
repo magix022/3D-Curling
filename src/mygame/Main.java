@@ -32,13 +32,17 @@ import com.jme3.math.Quaternion;
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.niftygui.NiftyJmeDisplay;
+import com.jme3.post.FilterPostProcessor;
+import com.jme3.post.ssao.SSAOFilter;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.renderer.queue.RenderQueue.Bucket;
+import com.jme3.renderer.queue.RenderQueue.ShadowMode;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.debug.Arrow;
 import com.jme3.scene.shape.Cylinder;
 import com.jme3.scene.shape.Sphere;
+import com.jme3.shadow.DirectionalLightShadowRenderer;
 import com.jme3.texture.Texture;
 import de.lessvoid.nifty.Nifty;
 import de.lessvoid.nifty.controls.ImageSelect;
@@ -111,7 +115,7 @@ public class Main extends SimpleApplication implements ScreenController {
     private float shotY = 0;
     private float velocityX;
     private float velocityY;
-    
+
     private Quaternion arrowRotation = new Quaternion();
     private Quaternion firstArrowRotation = new Quaternion();
 
@@ -195,9 +199,9 @@ public class Main extends SimpleApplication implements ScreenController {
         cylin.addControl(houseGhost);
         cylin.setLocalRotation(x90);
         cylin.setLocalTranslation(centerPos);
-        
+
         Quaternion y180 = new Quaternion();
-        y180.fromAngleAxis(FastMath.PI, new Vector3f(0,1,0));
+        y180.fromAngleAxis(FastMath.PI, new Vector3f(0, 1, 0));
         firstArrowRotation = x90.mult(y180);
 
         //setting materials to spatials
@@ -216,7 +220,7 @@ public class Main extends SimpleApplication implements ScreenController {
         //camera parameters
         flyCam.setMoveSpeed(50f);
         flyCam.setDragToRotate(true);
-        flyCam.setEnabled(false);
+        flyCam.setEnabled(true);
         cam.lookAtDirection(new Vector3f(-1, -0.3f, 0), new Vector3f(0, 1, 0));
     }
 
@@ -403,24 +407,52 @@ public class Main extends SimpleApplication implements ScreenController {
         sceneNode.getChild("small_ring_frontHouse").move(0, 0.5f, 0);
 
         //Add light to the scene
-        AmbientLight al = new AmbientLight();
-        al.setColor(ColorRGBA.White.mult(0.6f));
-        rootNode.addLight(al);
+        DirectionalLight light = new DirectionalLight();
+        light.setColor(ColorRGBA.White);
+        light.setDirection(new Vector3f(2, -10, 4));
+        rootNode.addLight(light);
 
-//        for (int i = 0; i < 15; i++) {
-//            SpotLight spot = new SpotLight();
-//            spot.setSpotRange(100f);
-//            spot.setSpotInnerAngle(0f * FastMath.DEG_TO_RAD);
-//            spot.setSpotOuterAngle(89f * FastMath.DEG_TO_RAD);
-//            spot.setColor(ColorRGBA.White.mult(1.3f));
-//            if (i % 2 == 0) {
-//                spot.setPosition(new Vector3f((10*i), 0, -10));
-//            } else {
-//                spot.setPosition(new Vector3f((-10*i), 0, -10));
-//            }
-//            spot.setDirection(new Vector3f(0, -1, 0));
-//            rootNode.addLight(spot);
-//        }
+        //Add shawdos for particular meshes in the scene
+        final int SHADOWMAP_SIZE = 1024;
+        DirectionalLightShadowRenderer shadow = new DirectionalLightShadowRenderer(assetManager, SHADOWMAP_SIZE, 3);
+        shadow.setLight(light);
+        shadow.setShadowIntensity(0.2f);
+        shadow.setShadowZExtend(2000f);
+        viewPort.addProcessor(shadow);
+        
+        //Add filter for better and more realistic shadows
+        FilterPostProcessor fpp = new FilterPostProcessor(assetManager);
+        SSAOFilter ssaoFilter = new SSAOFilter(12.94f, 43.92f, 0.33f, 0.61f);
+        fpp.addFilter(ssaoFilter);
+        viewPort.addProcessor(fpp);
+
+        rootNode.setShadowMode(ShadowMode.Off);
+
+        sceneNode.getChild("Ice").setShadowMode(ShadowMode.Receive);
+        sceneNode.getChild("rink_entrance").setShadowMode(ShadowMode.CastAndReceive);
+        sceneNode.getChild("top_right_board").setShadowMode(ShadowMode.CastAndReceive);
+        sceneNode.getChild("top_left_board").setShadowMode(ShadowMode.CastAndReceive);
+        sceneNode.getChild("right_board").setShadowMode(ShadowMode.CastAndReceive);
+        sceneNode.getChild("left_board").setShadowMode(ShadowMode.CastAndReceive);
+        sceneNode.getChild("step1_right_stands").setShadowMode(ShadowMode.CastAndReceive);
+        sceneNode.getChild("step2_right_stands").setShadowMode(ShadowMode.CastAndReceive);
+        sceneNode.getChild("step3_right_stands").setShadowMode(ShadowMode.CastAndReceive);
+        sceneNode.getChild("step4_right_stands").setShadowMode(ShadowMode.CastAndReceive);
+        sceneNode.getChild("step1_left_stands").setShadowMode(ShadowMode.CastAndReceive);
+        sceneNode.getChild("step2_left_stands").setShadowMode(ShadowMode.CastAndReceive);
+        sceneNode.getChild("step3_left_stands").setShadowMode(ShadowMode.CastAndReceive);
+        sceneNode.getChild("step4_left_stands").setShadowMode(ShadowMode.CastAndReceive);
+        sceneNode.getChild("big_ring_backHouse").setShadowMode(ShadowMode.Receive);
+        sceneNode.getChild("big_ring_frontHouse").setShadowMode(ShadowMode.Receive);
+        sceneNode.getChild("small_ring_backHouse").setMaterial(smallRingMat);
+        sceneNode.getChild("small_ring_frontHouse").setMaterial(smallRingMat);
+        sceneNode.getChild("line_middle_frontHouse").setMaterial(linesMat);
+        sceneNode.getChild("line_end_frontHouse").setMaterial(linesMat);
+        sceneNode.getChild("line_middle_rink").setMaterial(linesMat);
+        sceneNode.getChild("line_middle_backHouse").setMaterial(linesMat);
+        sceneNode.getChild("line_end_backHouse").setMaterial(linesMat);
+        sceneNode.getChild("line_start_backHouse").setMaterial(linesMat);
+        sceneNode.getChild("line_start_frontHouse").setMaterial(linesMat);
     }
 
     public void getDistanceFromCenter(Vector3f centerPos) {
@@ -550,7 +582,7 @@ public class Main extends SimpleApplication implements ScreenController {
         rockPhy.setRestitution(1f);
         rockPhy.setLinearDamping(0.20f);
         bulletAppState.getPhysicsSpace().add(rockPhy);
-
+        rock.getRockModel().setShadowMode(ShadowMode.CastAndReceive);
         rockTeam[index] = rock;
         physTeam.add(rockPhy);
 
@@ -597,35 +629,33 @@ public class Main extends SimpleApplication implements ScreenController {
             }
         }
     };
-    
-    public void updateVelocityValue(){
+
+    public void updateVelocityValue() {
         float currentX = inputManager.getCursorPosition().x;
         float currentY = inputManager.getCursorPosition().y;
-        
+
         float tempVelocityX;
         float tempVelocityY;
-        
+
         if (shotX - currentX > 300) {
-                tempVelocityX = 300;
-            } else if (shotX - currentX < -300) {
-                tempVelocityX = -300;
-            } else {
-                tempVelocityX = shotX - currentX;
-            }
+            tempVelocityX = 300;
+        } else if (shotX - currentX < -300) {
+            tempVelocityX = -300;
+        } else {
+            tempVelocityX = shotX - currentX;
+        }
 
         if (shotY - currentY > 200) {
-                tempVelocityY = 200;
-        } 
-        else if (shotY - currentY < 0) {
-                tempVelocityY = 0;
+            tempVelocityY = 200;
+        } else if (shotY - currentY < 0) {
+            tempVelocityY = 0;
+        } else {
+            tempVelocityY = shotY - currentY;
         }
-        else{
-                tempVelocityY = shotY - currentY;
-        }
-        
-        velocityX = tempVelocityX/3;
-        velocityY = tempVelocityY/2;
-          
+
+        velocityX = tempVelocityX / 3;
+        velocityY = tempVelocityY / 2;
+
     }
 
     public void throwRock(ArrayList<YLockControl> physTeam) {
@@ -711,22 +741,21 @@ public class Main extends SimpleApplication implements ScreenController {
                 physTeam.get(i).physicsTick(bulletAppState.getPhysicsSpace(), tpf);
 
             }
-            
+
             updateVelocityValue();
 
-            double angle = (velocityX/velocityY);
+            double angle = (velocityX / velocityY);
 
             Quaternion temp = new Quaternion();
-            temp.fromAngleAxis((float)Math.atan(angle), new Vector3f(0,0,-1));
-
+            temp.fromAngleAxis((float) Math.atan(angle), new Vector3f(0, 0, -1));
 
             arrowRotation = firstArrowRotation.mult(temp);
 
             arrowGeo.setLocalRotation(arrowRotation);
-            arrowGeo.setLocalScale(velocityY/20);
+            arrowGeo.setLocalScale(velocityY / 20);
 
             Vector3f rockCamLocation = physTeam.get(physTeam.size() - 1).getPhysicsLocation().add(15, 5, 0);
-            cam.setLocation(rockCamLocation);
+//            cam.setLocation(rockCamLocation);
 
             //listener for the left and right click action
             inputManager.addListener(actionListenerThrow, "throw");
