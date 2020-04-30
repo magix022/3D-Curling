@@ -21,32 +21,32 @@
             <panel id="panel_buttons" height="60%" width="25%" align="right"childLayout="vertical">
                 
                 
-                <panel id="panel_top" height="50%" width="50%" valign="center"childLayout="center">
+                <panel id="panel_top" height="48%" width="50%" valign="center"childLayout="center">
                     //start button
-                    <control name="button" label="Start" backgroundColor="#000f" id="StartButton" align="center" valign="center"visibleToMouse="true"  >
+                   <image filename="Interface/start.png" height="136%" width="310%" visibleToMouse="true" >
                          
                         <interact onClick="startGame(teamSelect)"/>
 
-                    </control>
+                    </image>
                 </panel>
                 
                 <panel id="panel_center" height="40%" width="50%" valign="center" childLayout="center">
-                    <control name="button" label="Option" id="OptionButton" align="center"valign="center" visibleToMouse="true" >
+                    <image filename="Interface/option.png" height="136%" width="330%" visibleToMouse="true" >
                         //option button
                         
                         <interact onClick="option(option)"/>
                         
-                    </control>
+                    </image>
                 </panel>
                 
                 <panel id="panel_bottom" height="50%" width="50%" valign="center" childLayout="center">
                     
                     //quit button
-                    <control name="button" label="Quit" id="QuitButton" align="center"valign="center"visibleToMouse="true" >
+                   <image filename="Interface/exit.png" height="80%" width="240%" visibleToMouse="true" >
                         
                         
                        <interact onClick="quitGame()"/>
-                    </control>
+                   </image>
                 </panel>
             </panel>
            </panel>
@@ -83,7 +83,7 @@
                  
                  <control name="button" label ="confirm selection" id="confirmButton" align="center" valign="center" visibleToMouse='true'>
                      
-                     <interact onClick= "teamSelection()"/>
+                     <interact onClick= "teamSelection(hud)"/>
                  </control>
                 
             </panel>
@@ -97,19 +97,19 @@
     
     //hud
     
-    <screen id="hud" controller="mygame.Main">
+     <screen id="hud" controller="mygame.Main">
          
         <layer id="foreground" childLayout="vertical">
             <panel id="panel_top1" width="100%" height="1%"  childLayout="horizontal">
             </panel>
             <panel id="panel_top2" width="25%" height="3%"  align="right" childLayout="horizontal">
-                <control name="label"  text="ITALY"  font="Interface/Fonts/GillSansUltraBold.fnt" width="50%" height="100%"/>
-                <control name="label"  text="0"  font="Interface/Fonts/GillSansUltraBold.fnt" width="50%" height="100%"/>
+                <text id="team1"  text="x"  font="Interface/Fonts/GillSansUltraBold.fnt" width="50%" height="100%"/>
+                <text id="scoreTeam1"  text="x"  font="Interface/Fonts/GillSansUltraBold.fnt" width="50%" height="100%"/>
             </panel>
                 
                 <panel id="panel_top3" width="25%" height="3%" align="right" childLayout="horizontal">
-                <control name="label"  text="CANADA" font="Interface/Fonts/GillSansUltraBold.fnt"  width="50%" height="100%"/>
-                <control name="label"  text="0"  font="Interface/Fonts/GillSansUltraBold.fnt" width="50%" height="100%"/>
+                <text id="team2" text="x" font="Interface/Fonts/GillSansUltraBold.fnt"  width="50%" height="100%"/>
+                <text id="scoreTeam2" text="x"  font="Interface/Fonts/GillSansUltraBold.fnt" width="50%" height="100%"/>
             </panel>
                 
                 

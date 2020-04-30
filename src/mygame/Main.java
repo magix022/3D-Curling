@@ -45,7 +45,11 @@ import com.jme3.scene.shape.Sphere;
 import com.jme3.shadow.DirectionalLightShadowRenderer;
 import com.jme3.texture.Texture;
 import de.lessvoid.nifty.Nifty;
+import de.lessvoid.nifty.NiftyEventSubscriber;
 import de.lessvoid.nifty.controls.ImageSelect;
+import de.lessvoid.nifty.controls.ImageSelectSelectionChangedEvent;
+import de.lessvoid.nifty.elements.Element;
+import de.lessvoid.nifty.elements.render.TextRenderer;
 import de.lessvoid.nifty.screen.Screen;
 import de.lessvoid.nifty.screen.ScreenController;
 import java.awt.Color;
@@ -120,6 +124,7 @@ public class Main extends SimpleApplication implements ScreenController {
     private Quaternion firstArrowRotation = new Quaternion();
 
     boolean roundIsDone = true;
+    boolean gameIsStarted=false;
     boolean gameIsFinished = true;
 
     private Boolean camStatus;
@@ -128,6 +133,12 @@ public class Main extends SimpleApplication implements ScreenController {
     private Nifty nifty;
     private Boolean unlockCommands = false;
     private Boolean shotHasBeenSet = false;
+    
+    ImageSelectSelectionChangedEvent event1;
+    ImageSelectSelectionChangedEvent event2;
+    Screen ScreenHud;
+    String team1Name="Italy";
+    String team2Name="Italy";
 
     public static void main(String[] args) {
         Main app = new Main();
@@ -696,6 +707,11 @@ public class Main extends SimpleApplication implements ScreenController {
 
     @Override
     public void simpleUpdate(float tpf) {
+        
+        if(gameIsStarted){
+            scoreTeam1();
+            scoreTeam2();
+        }
 //        System.out.println(unlockCommands);
         if (scoreboard.getRound() < scoreboard.getNumberOfRounds()) {
             if (scoreboard.getHammer() == 2) {
@@ -880,6 +896,7 @@ public class Main extends SimpleApplication implements ScreenController {
 
     @Override
     public void bind(Nifty nifty, Screen screen) {
+        ScreenHud=screen;
         System.out.println("bind( " + screen.getScreenId() + ")");
     }
 
@@ -905,16 +922,105 @@ public class Main extends SimpleApplication implements ScreenController {
 
     }
 
-    public void teamSelection() {
+    public void teamSelection(String nextScreen) {
 
-        nifty.gotoScreen("hud");
-
-        unlockCommands = true;
-
-        // ImageSelect select = screen.findNiftyControl("imageSelect", ImageSelect.class);
-        // int index = select.getSelectedImageIndex();
-        //System.out.print(index);
+         nifty.gotoScreen(nextScreen);
+        unlockCommand();
+        team1();
+        team2();
+        scoreTeam1();
+        scoreTeam2();
+        gameIsStarted = true;
     }
+    
+    
+        @NiftyEventSubscriber(id="imageSelect1")
+        public void image1(String id,ImageSelectSelectionChangedEvent event){
+            event1=event;
+            System.out.println("team 1 selected "+event.getSelectedIndex());
+            team1Name= getTeam1Name();
+        
+    }
+        
+        @NiftyEventSubscriber(id="imageSelect2")
+        public void image2(String id,ImageSelectSelectionChangedEvent event){
+            event2=event;
+            System.out.println("team 2 selected "+event.getSelectedIndex());
+            team2Name= getTeam2Name();
+        
+    }
+        //team 1 country selection
+        public void team1(){           
+            
+        // find old text
+        Element niftyElement = nifty.getScreen("hud").findElementById("team1");
+        // swap old with new text
+        niftyElement.getRenderer(TextRenderer.class).setText(team1Name);
+        
+    }//team 1 score
+        public void scoreTeam1(){
+            int score=scoreboard.getTeam1TotalScore();
+            String team1Score= Integer.toString(score);
+            
+        // find old text
+        Element niftyElement = nifty.getScreen("hud").findElementById("scoreTeam1");
+        // swap old with new text
+        niftyElement.getRenderer(TextRenderer.class).setText(team1Score);
+        
+    }
+        //team 2 country selection
+        public void team2(){
+            
+            
+        // find old text
+        Element niftyElement = nifty.getScreen("hud").findElementById("team2");
+        // swap old with new text
+        niftyElement.getRenderer(TextRenderer.class).setText(team2Name);
+        
+    }
+        //team 2 score 
+        public void scoreTeam2(){
+            int score=scoreboard.getTeam2TotalScore();
+            
+            String team2Score= Integer.toString(score);
+            
+        // find old text
+        Element niftyElement = nifty.getScreen("hud").findElementById("scoreTeam2");
+        // swap old with new text
+        niftyElement.getRenderer(TextRenderer.class).setText(team2Score);
+        }
+        
+        
+        public String getTeam1Name(){
+           String team1Name;
+           switch(event1.getSelectedIndex()){
+               case 0: team1Name="ITALY";break;
+               case 1: team1Name="FINLAND";break;
+               case 2: team1Name="CHINA";break;
+               case 3: team1Name="USA";break;
+               case 4: team1Name="SWEDEN";break;
+               default: team1Name="Italy";
+           }
+           
+                   
+                   
+            
+            return team1Name;
+        }
+                public String getTeam2Name(){
+           String team2Name;
+           switch(event2.getSelectedIndex()){
+               case 0: team2Name="ITALY";break;
+               case 1: team2Name="FINLAND";break;
+               case 2: team2Name="CHINA";break;
+               case 3: team2Name="USA";break;
+               case 4: team2Name="SWEDEN";break;
+               default: team2Name="Italy";
+           }
+            
+            return team2Name;
+        }
+        
 
     public void unlockCommand() {
 
