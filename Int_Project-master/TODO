@@ -1,0 +1,9 @@
+In order of importance(selon moi)"
+-Design classes (Rock, circle, both extends Spatials)
+-Design physics
+-Design throw
+-Design game (points, turns, etc...)
+-HUD
+-Menu
+-Apply textures
+-Audio (Optional)
