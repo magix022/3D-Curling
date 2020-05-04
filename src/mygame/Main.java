@@ -133,6 +133,7 @@ public class Main extends SimpleApplication implements ScreenController {
     private Nifty nifty;
     private Boolean unlockCommands = false;
     private Boolean shotHasBeenSet = false;
+    private Boolean alternateCamAngle = false;
     
     ImageSelectSelectionChangedEvent event1;
     ImageSelectSelectionChangedEvent event2;
@@ -231,8 +232,7 @@ public class Main extends SimpleApplication implements ScreenController {
         //camera parameters
         flyCam.setMoveSpeed(50f);
         flyCam.setDragToRotate(true);
-        flyCam.setEnabled(false);
-        cam.lookAtDirection(new Vector3f(-1, -0.3f, 0), new Vector3f(0, 1, 0));
+//        flyCam.setEnabled(false);
     }
 
     public void setMaterials() {
@@ -630,9 +630,14 @@ public class Main extends SimpleApplication implements ScreenController {
                     System.out.println("Set throw");
                     rootNode.attachChild(arrowGeo);
                 }
-//            if (name.equals("get") && !keyPressed){
-//                setThrowValue();
-//            }
+                if (name.equals("get") && keyPressed){
+                    cam.setLocation(new Vector3f(-154.96962f, 59.868954f, -6.3394666f));
+                    cam.lookAtDirection(new Vector3f(-0.06880015f,-0.99767405f,0), new Vector3f(0,1,0));
+                    alternateCamAngle = true;
+                }
+                if(name.equals("get") && !keyPressed){
+                    alternateCamAngle = false;
+                }
 //            if (name.equals("reset")) {
 //                resetPos(rockTeam, originRockPos, rockPhy);
 //            }
@@ -836,7 +841,12 @@ public class Main extends SimpleApplication implements ScreenController {
             arrowGeo.setLocalScale(velocityY / 20);
 
             Vector3f rockCamLocation = physTeam.get(physTeam.size() - 1).getPhysicsLocation().add(15, 5, 0);
-            cam.setLocation(rockCamLocation);
+            
+            if(!alternateCamAngle){
+                cam.setLocation(rockCamLocation);
+                cam.lookAtDirection(new Vector3f(-1, -0.3f, 0), new Vector3f(0, 1, 0));
+            }
+            
 
             //listener for the left and right click action
             inputManager.addListener(actionListenerThrow, "throw");
