@@ -4,8 +4,10 @@ import com.jme3.scene.Spatial;
 
 public class ScoreBoardClass {
 
+    //create data fiels
     int numberOfRounds;
     int round;
+    //initialize teams' scores
     int team1TotalScore = 0;
     int team2TotalScore = 0;
     int totalShots;
@@ -15,59 +17,73 @@ public class ScoreBoardClass {
     int[] team2RoundScore;
     int hammer;
 
+    //no args constructor
     public ScoreBoardClass() {
     }
 
+    //get the total number of rounds
     public int getNumberOfRounds() {
         return numberOfRounds;
     }
 
+    //set the total number of rounds
     public void setNumberOfRounds(int numberOfRounds) {
         this.numberOfRounds = numberOfRounds;
         team1RoundScore = new int[numberOfRounds];
         team2RoundScore = new int[numberOfRounds];
     }
 
+    //set the current round number
     public void setRound(int round) {
         this.round = round;
     }
 
+    //get the current round number
     public int getRound() {
         return round;
     }
 
+    //get the total number of shots completed
     public int getTotalShots() {
         return totalShots;
     }
 
+    //set the total number of shots completed
     public void setTotalShots(int totalShots) {
         this.totalShots = totalShots;
     }
 
+    //get team1's round score
     public int getTeam1RoundScore(int round) {
         return team1RoundScore[round];
     }
 
+    //set team1's round score
     public void setTeam1RoundScore(int round, int roundScoreTeam1) {
         this.team1RoundScore[round] = roundScoreTeam1;
     }
 
+    //get team2's round score
     public int getTeam2RoundScore(int round) {
         return team2RoundScore[round];
     }
 
+    //set team2's round score
     public void setTeam2RoundScore(int round, int roundScoreTeam2) {
         this.team2RoundScore[round] = roundScoreTeam2;
     }
 
+    //get team1's total score
     public int getTeam1TotalScore() {
         return team1TotalScore;
     }
 
+    //get team2's total score
     public int getTeam2TotalScore() {
         return team2TotalScore;
     }
 
+    //obtain string for round winner
     public String getRoundWinner() {
         if (team1TotalScore > this.getTeam2TotalScore()) {
             return "Team 1 wins this round";
@@ -76,6 +92,7 @@ public class ScoreBoardClass {
         }
     }
 
+    //obtain string for game winner
     public String getGameWinner() {
         if (this.getRound() == this.getNumberOfRounds()) {
             if (this.getTeam1TotalScore() > this.getTeam2TotalScore()) {
@@ -90,6 +107,7 @@ public class ScoreBoardClass {
         }
     }
 
+    //calculate team1's total score
     public void calculateTotalScoreTeam1() {
         team1TotalScore = 0;
         for (int i = 0; i < team1RoundScore.length; i++) {
@@ -97,6 +115,7 @@ public class ScoreBoardClass {
         }
     }
 
+    //calculate team2's total score
     public void calculateTotalScoreTeam2() {
         team2TotalScore = 0;
         for (int i = 0; i < team2RoundScore.length; i++) {
@@ -104,10 +123,12 @@ public class ScoreBoardClass {
         }
     }
 
+    //set the hammer to a particular team
     public void setHammer(int hammer) {
         this.hammer = hammer;
     }
 
+    //obtain which team has the hammer at a particular round
     public int getHammer() {
         if (getRound() == 0) {
             return this.hammer;
