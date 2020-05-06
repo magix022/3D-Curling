@@ -78,10 +78,15 @@ public class Main extends SimpleApplication implements ScreenController {
     private Material standsMat1;
     private Material standsMat2;
     private Material sideRoofMat;
+    private Material arrowMat;
 
     //Materials for the rocks
-    private Material blueMat;
+    private Material yellowMat;
+    private Material graniteMat;
     private Material redMat;
+
+    Node rockNode1;
+    Node rockNode2;
 
     //Used to check if rock is in house
     private GhostControl houseGhost;
@@ -130,7 +135,7 @@ public class Main extends SimpleApplication implements ScreenController {
     private Boolean unlockCommands = false;
     private Boolean shotHasBeenSet = false;
     private Boolean alternateCamAngle = false;
-    
+
     ImageSelectSelectionChangedEvent event1;
     ImageSelectSelectionChangedEvent event2;
     Screen ScreenHud;
@@ -149,7 +154,7 @@ public class Main extends SimpleApplication implements ScreenController {
     public void simpleInitApp() {
         //Call nifty method to create GUI
         Init_Nifty();
-        
+
         //Call other methods to create the scene
         setMaterials();
         setScene();
@@ -159,11 +164,11 @@ public class Main extends SimpleApplication implements ScreenController {
 
         //set number of rounds
         scoreboard.setNumberOfRounds(10);
-        
+
         //randomly chose which team has the hammer
         initialHammer = (Math.random() <= 0.5) ? 1 : 2;
         scoreboard.setHammer(initialHammer);
-        
+
         //set initial round
         scoreboard.setRound(0);
 
@@ -184,8 +189,8 @@ public class Main extends SimpleApplication implements ScreenController {
         flyCam.setMoveSpeed(50f);
         flyCam.setDragToRotate(true);
     }
-    
-        //Game loop that update throughout the game
+
+    //Game loop that update throughout the game
     @Override
     public void simpleUpdate(float tpf) {
         //display score in GUI
@@ -193,7 +198,6 @@ public class Main extends SimpleApplication implements ScreenController {
             scoreTeam1();
             scoreTeam2();
         }
-        
 
         //check if there are still rounds to be played
         if (scoreboard.getRound() < scoreboard.getNumberOfRounds()) {
@@ -347,9 +351,8 @@ public class Main extends SimpleApplication implements ScreenController {
             inputManager.addListener(actionListener, "get1");
             inputManager.addListener(actionListener, "get2");
             inputManager.addListener(actionListener, "get3");
-            
-            System.out.println(physTeam.get(physTeam.size() - 1).getLinearDamping());
 
+            System.out.println(physTeam.get(physTeam.size() - 1).getLinearDamping());
 
         } else {
             //when game is finished, display final score
@@ -490,31 +493,39 @@ public class Main extends SimpleApplication implements ScreenController {
         Rock rock = new Rock(team);
         //assign model to rock
         rock.setRockModel(assetManager.loadModel(rock.getModelPath()));
-        //assign initial position ot rock
-        rock.getRockModel().setLocalTranslation(originRockPos.add(2, 0, 2f));
+        //assign initial position to rock
+        rock.getRockModel().setLocalTranslation(originRockPos.add(2, 0, 2));
 
-        //set rock material
+        //set rock materials
         if (team == 1) {
-//            rock.getRockModel().setMaterial(redMat);
+            rockNode1 = (Node) rock.getRockModel();
+            rockNode1.getChild("main_handle").setMaterial(redMat);
+            rockNode1.getChild("granite_base").setMaterial(graniteMat);
+            rockNode1.getChild("colour_top").setMaterial(redMat);
+            rockNode1.getChild("cylinder_handle").setMaterial(redMat);
         } else {
-//            rock.getRockModel().setMaterial(blueMat);
+            rockNode2 = (Node) rock.getRockModel();
+            rockNode2.getChild("main_handle").setMaterial(yellowMat);
+            rockNode2.getChild("granite_base").setMaterial(graniteMat);
+            rockNode2.getChild("colour_top").setMaterial(yellowMat);
+            rockNode2.getChild("cylinder_handle").setMaterial(yellowMat);
         }
-
         //attach rock to scene
         rootNode.attachChild(rock.getRockModel());
 
         //add physics control for new rock
         YLockControl rockPhy = new YLockControl(1f);
-      
+
         rock.getRockModel().addControl(rockPhy);
+
         rockPhy.setRestitution(1f);
         //set initial linear speed damping factor for rock
         rockPhy.setLinearDamping(0.25f);
         bulletAppState.getPhysicsSpace().add(rockPhy);
-        rockPhy.setAngularFactor(new Vector3f(0,1,0));
+        rockPhy.setAngularFactor(new Vector3f(0, 1, 0));
         rockPhy.setAngularDamping(0.20f);
         //set shadows for rocks
-//        rock.getRockModel().setShadowMode(ShadowMode.Receive);
+        rock.getRockModel().setShadowMode(ShadowMode.CastAndReceive);
         //add rock and physics control to arrays
         rockTeam[index] = rock;
         physTeam.add(rockPhy);
@@ -865,7 +876,7 @@ public class Main extends SimpleApplication implements ScreenController {
     public void quitGame() {
         System.exit(0);
     }
-    
+
     //Method to initialise all textures in the scene
     public void setMaterials() {
         //set transparent material for the ghost detection shape
@@ -883,7 +894,7 @@ public class Main extends SimpleApplication implements ScreenController {
         sideBoardsTex.setWrap(Texture.WrapMode.Repeat);
         sideBoardsMat.setTexture("ColorMap", sideBoardsTex);
         topBoardsMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        Texture topBoardsTex = assetManager.loadTexture(new TextureKey("Textures/blueMat.jpg", false));
+        Texture topBoardsTex = assetManager.loadTexture(new TextureKey("Textures/arrowMat.jpg", false));
         topBoardsTex.setWrap(Texture.WrapMode.Repeat);
         topBoardsMat.setTexture("ColorMap", topBoardsTex);
 
@@ -931,13 +942,27 @@ public class Main extends SimpleApplication implements ScreenController {
         linesMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         linesMat.setTexture("ColorMap", assetManager.loadTexture("Textures/linesMat.jpg"));
 
+        //Texture for arrow
+        arrowMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        arrowMat.setTexture("ColorMap", assetManager.loadTexture("Textures/arrowMat.jpg"));
+
         //Texture for curling rocks
         redMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         redMat.setTexture("ColorMap", assetManager.loadTexture("Textures/redMat.jpg"));
-        blueMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        blueMat.setTexture("ColorMap", assetManager.loadTexture("Textures/blueMat.jpg"));
+        redMat.getAdditionalRenderState().setBlendMode(BlendMode.Off);
+        redMat.setTransparent(true);
+
+        yellowMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        yellowMat.setTexture("ColorMap", assetManager.loadTexture("Textures/yellowMat.jpg"));
+        yellowMat.getAdditionalRenderState().setBlendMode(BlendMode.Off);
+        yellowMat.setTransparent(false);
+
+        graniteMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        Texture graniteTex = assetManager.loadTexture(new TextureKey("Textures/graniteMat.jpg", false));
+        graniteTex.setWrap(Texture.WrapMode.Repeat);
+        graniteMat.setTexture("ColorMap", graniteTex);
     }
-    
+
     //Method to set all the textures to the objects in the scene
     public void setCoordinates() {
         sceneNode = (Node) floorScene;
@@ -1018,13 +1043,13 @@ public class Main extends SimpleApplication implements ScreenController {
 
         //Reposition the houses' circles in the scene to be over the ice surface)
         sceneNode.getChild("big_ring_backHouse").removeControl(sceneGeo);
-        sceneNode.getChild("big_ring_backHouse").move(0, 0.5f, 0);
+        sceneNode.getChild("big_ring_backHouse").move(0, 0.05f, 0);
         sceneNode.getChild("big_ring_frontHouse").removeControl(sceneGeo);
-        sceneNode.getChild("big_ring_frontHouse").move(0, 0.5f, 0);
+        sceneNode.getChild("big_ring_frontHouse").move(0, 0.05f, 0);
         sceneNode.getChild("small_ring_backHouse").removeControl(sceneGeo);
-        sceneNode.getChild("small_ring_backHouse").move(0, 0.5f, 0);
+        sceneNode.getChild("small_ring_backHouse").move(0, 0.05f, 0);
         sceneNode.getChild("small_ring_frontHouse").removeControl(sceneGeo);
-        sceneNode.getChild("small_ring_frontHouse").move(0, 0.5f, 0);
+        sceneNode.getChild("small_ring_frontHouse").move(0, 0.05f, 0);
 
         //Add directional light to the scene
         DirectionalLight light = new DirectionalLight();
@@ -1042,7 +1067,7 @@ public class Main extends SimpleApplication implements ScreenController {
 
         //Add shadow filter for better and more realistic shadows
         FilterPostProcessor fpp = new FilterPostProcessor(assetManager);
-        SSAOFilter ssaoFilter = new SSAOFilter(12.94f, 43.92f, 0.33f, 0.61f);
+        SSAOFilter ssaoFilter = new SSAOFilter(22.94f, 43.92f, 0.33f, 0.61f);
         fpp.addFilter(ssaoFilter);
         viewPort.addProcessor(fpp);
 
@@ -1062,11 +1087,14 @@ public class Main extends SimpleApplication implements ScreenController {
         sceneNode.getChild("step2_left_stands").setShadowMode(ShadowMode.CastAndReceive);
         sceneNode.getChild("step3_left_stands").setShadowMode(ShadowMode.CastAndReceive);
         sceneNode.getChild("step4_left_stands").setShadowMode(ShadowMode.CastAndReceive);
+
         sceneNode.getChild("big_ring_backHouse").setShadowMode(ShadowMode.Receive);
         sceneNode.getChild("big_ring_frontHouse").setShadowMode(ShadowMode.Receive);
+        sceneNode.getChild("small_ring_backHouse").setShadowMode(ShadowMode.Receive);
+        sceneNode.getChild("small_ring_frontHouse").setShadowMode(ShadowMode.Receive);
     }
-    
-        //Method to prepare the scene
+
+    //Method to prepare the scene
     public void setScene() {
         //load the scene model
         floorScene = assetManager.loadModel("Scenes/ARENA.j3o");
@@ -1080,8 +1108,6 @@ public class Main extends SimpleApplication implements ScreenController {
         sceneGeo.setRestitution(0.9f);
 
     }
-
-   
 
     //Method for GUI
     public void Init_Nifty() {
@@ -1097,8 +1123,8 @@ public class Main extends SimpleApplication implements ScreenController {
         guiViewPort.addProcessor(niftyDisplay);
 
     }
-    
-    public void initMapping(){
+
+    public void initMapping() {
         //creation of command mapping for in-game keyboard and mouse controls
         inputManager.addMapping("throw", new MouseButtonTrigger(MouseInput.BUTTON_LEFT));
         inputManager.addMapping("stop", new MouseButtonTrigger(MouseInput.BUTTON_RIGHT));
@@ -1110,12 +1136,12 @@ public class Main extends SimpleApplication implements ScreenController {
         inputManager.setMouseCursor(null);
         inputManager.setCursorVisible(true);
     }
-    
-    public void setSpatials(){
+
+    public void setSpatials() {
         //create 3D arrow for direction of throw
         Arrow arrow = new Arrow(new Vector3f(-5, 0, 0));
         arrowGeo = assetManager.loadModel("Models/arrow.j3o");
-        arrowGeo.setMaterial(blueMat);
+        arrowGeo.setMaterial(arrowMat);
         arrowGeo.setLocalTranslation(originRockPos.add(2, 1, 2));
         arrowGeo.setName("arrowGeo");
 
@@ -1139,7 +1165,7 @@ public class Main extends SimpleApplication implements ScreenController {
         //setting materials to spatials
         cylin.setQueueBucket(Bucket.Translucent);
         cylin.setMaterial(transMat);
-        
+
         //attaching spatials to rootNode
         rootNode.attachChild(cylin);
         rootNode.attachChild(floorScene);

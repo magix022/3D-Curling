@@ -37,7 +37,6 @@ public class YLockControl extends RigidBodyControl implements PhysicsTickListene
         Vector3f angularVelocityVector = getAngularVelocity();
 
         linearVelocityVector.y = 0;
-
         angularVelocityVector.x = 0;
         angularVelocityVector.z = 0;
 

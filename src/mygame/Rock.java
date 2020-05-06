@@ -39,12 +39,10 @@ public class Rock {
         this.team = team;
 
         if (team == 1) {
-            modelPath = "Models/red_rock.glb";
-
+            modelPath = "Models/red_rock_VRAI.j3o";
         } else {
-            modelPath = "Models/yellow_rock.glb";
+            modelPath = "Models/yellow_rock_VRAI.j3o";
         }
-
     }
 
     public String getModelPath() {
