@@ -17,7 +17,9 @@ import com.jme3.input.MouseInput;
 import com.jme3.input.controls.ActionListener;
 import com.jme3.input.controls.KeyTrigger;
 import com.jme3.input.controls.MouseButtonTrigger;
+import com.jme3.light.AmbientLight;
 import com.jme3.light.DirectionalLight;
+import com.jme3.light.PointLight;
 import com.jme3.material.RenderState;
 import com.jme3.material.RenderState.BlendMode;
 import com.jme3.math.FastMath;
@@ -34,6 +36,7 @@ import com.jme3.scene.Spatial;
 import com.jme3.scene.debug.Arrow;
 import com.jme3.scene.shape.Cylinder;
 import com.jme3.shadow.DirectionalLightShadowRenderer;
+import com.jme3.shadow.PointLightShadowRenderer;
 import com.jme3.texture.Texture;
 import de.lessvoid.nifty.Nifty;
 import de.lessvoid.nifty.NiftyEventSubscriber;
@@ -59,6 +62,7 @@ public class Main extends SimpleApplication implements ScreenController {
     private Vector3f centerPos;
     private Vector3f extremity;
     private Vector3f rockCamLocation;
+    private Vector3f firstLight;
 
     //Data fields for the scene
     private Spatial floorScene;
@@ -348,7 +352,6 @@ public class Main extends SimpleApplication implements ScreenController {
             inputManager.addListener(actionListener, "get2");
             inputManager.addListener(actionListener, "get3");
             
-            System.out.println(physTeam.get(physTeam.size() - 1).getLinearDamping());
 
 
         } else {
@@ -514,7 +517,7 @@ public class Main extends SimpleApplication implements ScreenController {
         rockPhy.setAngularFactor(new Vector3f(0,1,0));
         rockPhy.setAngularDamping(0.20f);
         //set shadows for rocks
-//        rock.getRockModel().setShadowMode(ShadowMode.Receive);
+        rock.getRockModel().setShadowMode(ShadowMode.CastAndReceive);
         //add rock and physics control to arrays
         rockTeam[index] = rock;
         physTeam.add(rockPhy);
@@ -619,6 +622,8 @@ public class Main extends SimpleApplication implements ScreenController {
     public void throwRock(ArrayList<YLockControl> physTeam) {
         if (shotDone.get(physTeam.size() - 1) == false) {
             physTeam.get(physTeam.size() - 1).setLinearVelocity(new Vector3f(-velocityY, 0, -velocityX));
+            float random = (float) (Math.random()*10);
+            physTeam.get(physTeam.size() - 1).setAngularVelocity(new Vector3f(0,random,0));
             shotDone.set(physTeam.size() - 1, true);
             scoreboard.setTotalShots(scoreboard.getTotalShots() + 1);
         }
@@ -1015,36 +1020,57 @@ public class Main extends SimpleApplication implements ScreenController {
         camView = sceneNode.getChild("camView").getLocalTranslation();
         centerPos = sceneNode.getChild("Center").getLocalTranslation();
         extremity = sceneNode.getChild("Extremity").getLocalTranslation();
+        
 
         //Reposition the houses' circles in the scene to be over the ice surface)
         sceneNode.getChild("big_ring_backHouse").removeControl(sceneGeo);
-        sceneNode.getChild("big_ring_backHouse").move(0, 0.5f, 0);
+        sceneNode.getChild("big_ring_backHouse").move(0, 0.1f, 0);
         sceneNode.getChild("big_ring_frontHouse").removeControl(sceneGeo);
-        sceneNode.getChild("big_ring_frontHouse").move(0, 0.5f, 0);
+        sceneNode.getChild("big_ring_frontHouse").move(0, 0.1f, 0);
         sceneNode.getChild("small_ring_backHouse").removeControl(sceneGeo);
-        sceneNode.getChild("small_ring_backHouse").move(0, 0.5f, 0);
+        sceneNode.getChild("small_ring_backHouse").move(0, 0.1f, 0);
         sceneNode.getChild("small_ring_frontHouse").removeControl(sceneGeo);
-        sceneNode.getChild("small_ring_frontHouse").move(0, 0.5f, 0);
+        sceneNode.getChild("small_ring_frontHouse").move(0, 0.1f, 0);
 
-        //Add directional light to the scene
-        DirectionalLight light = new DirectionalLight();
+//        Add directional light to the scene
+        PointLight light = new PointLight();
         light.setColor(ColorRGBA.White);
-        light.setDirection(new Vector3f(2, -10, 4));
+        light.setPosition(new Vector3f(0, 20, -10.340717f));  
+        light.setRadius(150f);
         rootNode.addLight(light);
+        
+        
+        
+        PointLight light2 = new PointLight();
+        light2.setColor(ColorRGBA.White);
+        light2.setPosition(new Vector3f(171.03542f, 15f,-10.140717f));
+        light2.setRadius(1000f);
+        rootNode.addLight(light2);
+        
+        PointLight light3 = new PointLight();
+        light3.setColor(ColorRGBA.White);
+        light3.setPosition(centerPos.add(0, 20, 0));
+        light3.setRadius(1000f);
+        rootNode.addLight(light3);
+        
+        DirectionalLight dLight = new DirectionalLight();
+        dLight.setColor(ColorRGBA.White);     
+        dLight.setDirection(new Vector3f(1,0f, 0));
+        rootNode.addLight(dLight);
 
         //Create shadow object and add it to the scene
         final int SHADOWMAP_SIZE = 1024;
-        DirectionalLightShadowRenderer shadow = new DirectionalLightShadowRenderer(assetManager, SHADOWMAP_SIZE, 3);
+        PointLightShadowRenderer shadow = new PointLightShadowRenderer(assetManager, SHADOWMAP_SIZE);
         shadow.setLight(light);
         shadow.setShadowIntensity(0.2f);
         shadow.setShadowZExtend(500f);
         viewPort.addProcessor(shadow);
 
-        //Add shadow filter for better and more realistic shadows
-        FilterPostProcessor fpp = new FilterPostProcessor(assetManager);
-        SSAOFilter ssaoFilter = new SSAOFilter(12.94f, 43.92f, 0.33f, 0.61f);
-        fpp.addFilter(ssaoFilter);
-        viewPort.addProcessor(fpp);
+//        //Add shadow filter for better and more realistic shadows
+//        FilterPostProcessor fpp = new FilterPostProcessor(assetManager);
+//        SSAOFilter ssaoFilter = new SSAOFilter(12.94f, 43.92f, 0.33f, 0.61f);
+//        fpp.addFilter(ssaoFilter);
+//        viewPort.addProcessor(fpp);
 
         //Add shadows for particular objects in the scene
         rootNode.setShadowMode(ShadowMode.Off);
