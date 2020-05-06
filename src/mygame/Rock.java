@@ -22,12 +22,6 @@ import com.jme3.scene.Node;
  */
 public class Rock {
 
-//    private float speedX;
-//    private float speedZ;
-//    private float positionX;
-//    private float positionZ;
-    private float accelerationX;
-    private float accelerationZ;
 
     private int team;
 
@@ -43,73 +37,14 @@ public class Rock {
     public Rock(int team) {
         super();
         this.team = team;
-//        this.yLockControl = new YLockControl(1);
+
         if (team == 1) {
-            modelPath = "Models/RockCylinder.glb";
+            modelPath = "Models/red_rock2.0.glb";
 
         } else {
-            modelPath = "Models/RockCylinder.glb";
+            modelPath = "Models/yellow_rock2.0.glb";
         }
-//        yLockControl = new YLockControl(1f);
 
-    }
-
-//    public void updateFields(){
-//        speedX = yLockControl.getLinearVelocity().x;
-//        speedZ = yLockControl.getLinearVelocity().z;
-//        positionX = yLockControl.getPhysicsLocation().x;
-//        positionZ = yLockControl.getPhysicsLocation().z;
-//    }
-    public void accelerationEffect() {
-
-    }
-
-//
-//    public double getSpeedX() {
-//        return speedX;
-//    }
-//
-//    public void setSpeedX(float speedX) {
-//        this.speedX = speedX;
-//    }
-//
-//    public double getSpeedZ() {
-//        return speedZ;
-//    }
-//
-//    public void setSpeedZ(float speedZ) {
-//        this.speedZ = speedZ;
-//    }
-//
-//    public float getPositionX() {
-//        return positionX;
-//    }
-//
-//    public void setPositionX(float positionX) {
-//        this.positionX = positionX;
-//    }
-//
-//    public float getPositionZ() {
-//        return positionZ;
-//    }
-//
-//    public void setPositionZ(float positionZ) {
-//        this.positionZ = positionZ;
-//    }
-    public double getAccelerationX() {
-        return accelerationX;
-    }
-
-    public void setAccelerationX(float accelerationX) {
-        this.accelerationX = accelerationX;
-    }
-
-    public double getAccelerationZ() {
-        return accelerationZ;
-    }
-
-    public void setAccelerationZ(float accelerationZ) {
-        this.accelerationZ = accelerationZ;
     }
 
     public String getModelPath() {
@@ -128,13 +63,6 @@ public class Rock {
         this.rockModel = rockModel;
     }
 
-//    public YLockControl getRigidBodyControl(){
-//        return yLockControl;
-//    }
-//    
-//    public void setRigidBodyControl(YLockControl r){
-//        yLockControl = r;
-//    }
     public CollisionShape getCollisionShape() {
         return rockCollisionShape;
     }

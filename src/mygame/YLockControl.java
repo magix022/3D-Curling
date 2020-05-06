@@ -21,10 +21,10 @@ public class YLockControl extends RigidBodyControl implements PhysicsTickListene
 
     public YLockControl(float mass){
         super(mass);
+
     }
     
     
-    private float accelerationFactor = 4f;
     
     public float yLocation;
     @Override
@@ -40,13 +40,8 @@ public class YLockControl extends RigidBodyControl implements PhysicsTickListene
 
         angularVelocityVector.x = 0;
         angularVelocityVector.z = 0;
-        
-//        translationVector.y = yLocation;
-        
-        
 
         setLinearVelocity(linearVelocityVector);
-//        setPhysicsLocation(translationVector);
         setAngularVelocity(angularVelocityVector);
     }
     
@@ -55,9 +50,7 @@ public class YLockControl extends RigidBodyControl implements PhysicsTickListene
         
         Vector3f translationVector = getPhysicsLocation();
         Vector3f angularVelocityVector = getAngularVelocity();
-        
-//        translationVector.y = yLocation;
-        
+                
         angularVelocityVector.x = 0;
         angularVelocityVector.z = 0;
                 
@@ -69,7 +62,6 @@ public class YLockControl extends RigidBodyControl implements PhysicsTickListene
     protected void controlUpdate(float tpf, float yLocation) {
         Vector3f translationVector = this.getPhysicsLocation();
         translationVector.y = yLocation;
-        this.setAngularFactor(Vector3f.ZERO);
         this.setPhysicsLocation(translationVector);
         
         if(this.getLinearVelocity().length() < 0.5 && this.getLinearVelocity().length() > 0){
@@ -82,13 +74,6 @@ public class YLockControl extends RigidBodyControl implements PhysicsTickListene
         
     }
     
-    public float getAcceleration(){
-        return accelerationFactor;
-    }
-    
-    public void setAccelerationFactor(float a){
-        accelerationFactor = a;
-    }
 //    
 //    @Override
 //    protected void controlRender(RenderManager rm, ViewPort vp) {
