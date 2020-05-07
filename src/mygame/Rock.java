@@ -39,10 +39,10 @@ public class Rock {
         this.team = team;
 
         if (team == 1) {
-            modelPath = "Models/red_rock2.0.glb";
+            modelPath = "Models/red_rock_TEST_VRAI.glb";
 
         } else {
-            modelPath = "Models/yellow_rock2.0.glb";
+            modelPath = "Models/yellow_rock_TEST_VRAI.glb";
         }
 
     }
