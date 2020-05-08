@@ -134,7 +134,7 @@ public class Main extends SimpleApplication implements ScreenController {
     private Boolean unlockCommands = false;
     private Boolean shotHasBeenSet = false;
     private Boolean alternateCamAngle = false;
-    
+
     ImageSelectSelectionChangedEvent event1;
     ImageSelectSelectionChangedEvent event2;
     Screen ScreenHud;
@@ -153,7 +153,7 @@ public class Main extends SimpleApplication implements ScreenController {
     public void simpleInitApp() {
         //Call nifty method to create GUI
         Init_Nifty();
-        
+
         //Call other methods to create the scene
         setMaterials();
         setScene();
@@ -163,11 +163,11 @@ public class Main extends SimpleApplication implements ScreenController {
 
         //set number of rounds
         scoreboard.setNumberOfRounds(10);
-        
+
         //randomly chose which team has the hammer
         initialHammer = (Math.random() <= 0.5) ? 1 : 2;
         scoreboard.setHammer(initialHammer);
-        
+
         //set initial round
         scoreboard.setRound(0);
 
@@ -188,8 +188,8 @@ public class Main extends SimpleApplication implements ScreenController {
         flyCam.setMoveSpeed(50f);
         flyCam.setDragToRotate(true);
     }
-    
-        //Game loop that update throughout the game
+
+    //Game loop that update throughout the game
     @Override
     public void simpleUpdate(float tpf) {
         //display score in GUI
@@ -197,7 +197,6 @@ public class Main extends SimpleApplication implements ScreenController {
             scoreTeam1();
             scoreTeam2();
         }
-        
 
         //check if there are still rounds to be played
         if (scoreboard.getRound() < scoreboard.getNumberOfRounds()) {
@@ -351,8 +350,6 @@ public class Main extends SimpleApplication implements ScreenController {
             inputManager.addListener(actionListener, "get1");
             inputManager.addListener(actionListener, "get2");
             inputManager.addListener(actionListener, "get3");
-            
-
 
         } else {
             //when game is finished, display final score
@@ -496,25 +493,18 @@ public class Main extends SimpleApplication implements ScreenController {
         //assign initial position ot rock
         rock.getRockModel().setLocalTranslation(originRockPos.add(2, 0, 2f));
 
-        //set rock material
-        if (team == 1) {
-//            rock.getRockModel().setMaterial(redMat);
-        } else {
-//            rock.getRockModel().setMaterial(blueMat);
-        }
-
         //attach rock to scene
         rootNode.attachChild(rock.getRockModel());
 
         //add physics control for new rock
         YLockControl rockPhy = new YLockControl(1f);
-      
+
         rock.getRockModel().addControl(rockPhy);
         rockPhy.setRestitution(1f);
         //set initial linear speed damping factor for rock
         rockPhy.setLinearDamping(0.25f);
         bulletAppState.getPhysicsSpace().add(rockPhy);
-        rockPhy.setAngularFactor(new Vector3f(0,1,0));
+        rockPhy.setAngularFactor(new Vector3f(0, 1, 0));
         rockPhy.setAngularDamping(0.20f);
         //set shadows for rocks
         rock.getRockModel().setShadowMode(ShadowMode.CastAndReceive);
@@ -622,8 +612,8 @@ public class Main extends SimpleApplication implements ScreenController {
     public void throwRock(ArrayList<YLockControl> physTeam) {
         if (shotDone.get(physTeam.size() - 1) == false) {
             physTeam.get(physTeam.size() - 1).setLinearVelocity(new Vector3f(-velocityY, 0, -velocityX));
-            float random = (float) (Math.random()*10);
-            physTeam.get(physTeam.size() - 1).setAngularVelocity(new Vector3f(0,random,0));
+            float random = (float) ((Math.random() <= 0.5) ? (Math.random() * -5) : (Math.random() * 5));
+            physTeam.get(physTeam.size() - 1).setAngularVelocity(new Vector3f(0, random, 0));
             shotDone.set(physTeam.size() - 1, true);
             scoreboard.setTotalShots(scoreboard.getTotalShots() + 1);
         }
@@ -870,7 +860,7 @@ public class Main extends SimpleApplication implements ScreenController {
     public void quitGame() {
         System.exit(0);
     }
-    
+
     //Method to initialise all textures in the scene
     public void setMaterials() {
         //set transparent material for the ghost detection shape
@@ -942,7 +932,7 @@ public class Main extends SimpleApplication implements ScreenController {
         blueMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         blueMat.setTexture("ColorMap", assetManager.loadTexture("Textures/blueMat.jpg"));
     }
-    
+
     //Method to set all the textures to the objects in the scene
     public void setCoordinates() {
         sceneNode = (Node) floorScene;
@@ -1020,7 +1010,6 @@ public class Main extends SimpleApplication implements ScreenController {
         camView = sceneNode.getChild("camView").getLocalTranslation();
         centerPos = sceneNode.getChild("Center").getLocalTranslation();
         extremity = sceneNode.getChild("Extremity").getLocalTranslation();
-        
 
         //Reposition the houses' circles in the scene to be over the ice surface)
         sceneNode.getChild("big_ring_backHouse").removeControl(sceneGeo);
@@ -1035,27 +1024,25 @@ public class Main extends SimpleApplication implements ScreenController {
 //        Add directional light to the scene
         PointLight light = new PointLight();
         light.setColor(ColorRGBA.White);
-        light.setPosition(new Vector3f(0, 20, -10.340717f));  
+        light.setPosition(new Vector3f(0, 20, -10.340717f));
         light.setRadius(150f);
         rootNode.addLight(light);
-        
-        
-        
+
         PointLight light2 = new PointLight();
         light2.setColor(ColorRGBA.White);
-        light2.setPosition(new Vector3f(171.03542f, 15f,-10.140717f));
+        light2.setPosition(new Vector3f(171.03542f, 15f, -10.140717f));
         light2.setRadius(1000f);
         rootNode.addLight(light2);
-        
+
         PointLight light3 = new PointLight();
         light3.setColor(ColorRGBA.White);
         light3.setPosition(centerPos.add(0, 20, 0));
         light3.setRadius(1000f);
         rootNode.addLight(light3);
-        
+
         DirectionalLight dLight = new DirectionalLight();
-        dLight.setColor(ColorRGBA.White);     
-        dLight.setDirection(new Vector3f(1,0f, 0));
+        dLight.setColor(ColorRGBA.White);
+        dLight.setDirection(new Vector3f(1, 0f, 0));
         rootNode.addLight(dLight);
 
         //Create shadow object and add it to the scene
@@ -1071,7 +1058,6 @@ public class Main extends SimpleApplication implements ScreenController {
 //        SSAOFilter ssaoFilter = new SSAOFilter(12.94f, 43.92f, 0.33f, 0.61f);
 //        fpp.addFilter(ssaoFilter);
 //        viewPort.addProcessor(fpp);
-
         //Add shadows for particular objects in the scene
         rootNode.setShadowMode(ShadowMode.Off);
         sceneNode.getChild("Ice").setShadowMode(ShadowMode.Receive);
@@ -1091,8 +1077,8 @@ public class Main extends SimpleApplication implements ScreenController {
         sceneNode.getChild("big_ring_backHouse").setShadowMode(ShadowMode.Receive);
         sceneNode.getChild("big_ring_frontHouse").setShadowMode(ShadowMode.Receive);
     }
-    
-        //Method to prepare the scene
+
+    //Method to prepare the scene
     public void setScene() {
         //load the scene model
         floorScene = assetManager.loadModel("Scenes/ARENA.j3o");
@@ -1106,8 +1092,6 @@ public class Main extends SimpleApplication implements ScreenController {
         sceneGeo.setRestitution(0.9f);
 
     }
-
-   
 
     //Method for GUI
     public void Init_Nifty() {
@@ -1123,8 +1107,8 @@ public class Main extends SimpleApplication implements ScreenController {
         guiViewPort.addProcessor(niftyDisplay);
 
     }
-    
-    public void initMapping(){
+
+    public void initMapping() {
         //creation of command mapping for in-game keyboard and mouse controls
         inputManager.addMapping("throw", new MouseButtonTrigger(MouseInput.BUTTON_LEFT));
         inputManager.addMapping("stop", new MouseButtonTrigger(MouseInput.BUTTON_RIGHT));
@@ -1136,8 +1120,8 @@ public class Main extends SimpleApplication implements ScreenController {
         inputManager.setMouseCursor(null);
         inputManager.setCursorVisible(true);
     }
-    
-    public void setSpatials(){
+
+    public void setSpatials() {
         //create 3D arrow for direction of throw
         Arrow arrow = new Arrow(new Vector3f(-5, 0, 0));
         arrowGeo = assetManager.loadModel("Models/arrow.j3o");
@@ -1165,7 +1149,7 @@ public class Main extends SimpleApplication implements ScreenController {
         //setting materials to spatials
         cylin.setQueueBucket(Bucket.Translucent);
         cylin.setMaterial(transMat);
-        
+
         //attaching spatials to rootNode
         rootNode.attachChild(cylin);
         rootNode.attachChild(floorScene);
