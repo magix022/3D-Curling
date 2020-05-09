@@ -642,7 +642,7 @@ public class Main extends SimpleApplication implements ScreenController {
     public void throwRock(ArrayList<YLockControl> physTeam) {
         if (shotDone.get(physTeam.size() - 1) == false) {
             physTeam.get(physTeam.size() - 1).setLinearVelocity(new Vector3f(-velocityY, 0, -velocityX));
-            float random = (float) ((Math.random() <= 0.5) ? (Math.random() * -10) : (Math.random() * 10));
+            float random = (float) ((Math.random() <= 0.5) ? (Math.random() * -8) : (Math.random() * 8));
             physTeam.get(physTeam.size() - 1).setAngularVelocity(new Vector3f(0, random, 0));
             shotDone.set(physTeam.size() - 1, true);
             scoreboard.setTotalShots(scoreboard.getTotalShots() + 1);
