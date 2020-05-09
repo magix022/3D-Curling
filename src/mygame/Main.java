@@ -3,6 +3,7 @@ package mygame;
 //usefull imports
 import com.jme3.app.SimpleApplication;
 import com.jme3.asset.TextureKey;
+import com.jme3.audio.AudioData.DataType;
 import com.jme3.audio.AudioNode;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
@@ -141,6 +142,10 @@ public class Main extends SimpleApplication implements ScreenController {
     String team1Name = "Italy";
     String team2Name = "Italy";
 
+    private AudioNode collisionSound;
+    private AudioNode rockToBoard;
+    private AudioNode backgroundSound;
+
     public static void main(String[] args) {
         //create Main object
         Main app = new Main();
@@ -174,6 +179,23 @@ public class Main extends SimpleApplication implements ScreenController {
         //Set at true to start first shot, all other values are currently false
         Collections.fill(shotDone, Boolean.FALSE);
         shotDone.set(0, true);
+
+        collisionSound = new AudioNode(assetManager, "Sounds/rock_collision.wav", DataType.Buffer);
+        collisionSound.setPositional(false);
+        collisionSound.setLooping(false);
+        collisionSound.setVolume(0.1f);
+
+        backgroundSound = new AudioNode(assetManager, "Sounds/curling_background.wav", DataType.Stream);
+        backgroundSound.setPositional(false);
+        backgroundSound.setLooping(true);
+        backgroundSound.setVolume(1);
+        rootNode.attachChild(backgroundSound);
+        backgroundSound.play();
+
+        rockToBoard = new AudioNode(assetManager, "Sounds/thud.wav", DataType.Buffer);
+        rockToBoard.setPositional(true);
+        rockToBoard.setLooping(false);
+        rockToBoard.setVolume(0.05f);
 
         //Enable physics
         bulletAppState = new BulletAppState();
@@ -238,8 +260,8 @@ public class Main extends SimpleApplication implements ScreenController {
                 //update physics controls
                 for (int i = 0; i < physTeam.size(); i++) {
                     physTeam.get(i).controlUpdate(tpf, originRockPos.getY());
-                    physTeam.get(i).prePhysicsTick(bulletAppState.getPhysicsSpace(), tpf);
-                    physTeam.get(i).physicsTick(bulletAppState.getPhysicsSpace(), tpf);
+//                    physTeam.get(i).prePhysicsTick(bulletAppState.getPhysicsSpace(), tpf);
+//                    physTeam.get(i).physicsTick(bulletAppState.getPhysicsSpace(), tpf);
                 }
 
                 //if all shots have been completed and the rocks are motionless, the round is done
@@ -317,6 +339,9 @@ public class Main extends SimpleApplication implements ScreenController {
 
             //update rock velocity value
             updateVelocityValue();
+
+            listener.setLocation(cam.getLocation());
+            listener.setRotation(cam.getRotation());
 
             //turn quaternion temp object
             double angle = (velocityX / velocityY);
@@ -497,15 +522,17 @@ public class Main extends SimpleApplication implements ScreenController {
         rootNode.attachChild(rock.getRockModel());
 
         //add physics control for new rock
-        YLockControl rockPhy = new YLockControl(1f);
+        YLockControl rockPhy = new YLockControl(1f, collisionSound, rockToBoard, houseGhost);
 
         rock.getRockModel().addControl(rockPhy);
         rockPhy.setRestitution(1f);
         //set initial linear speed damping factor for rock
         rockPhy.setLinearDamping(0.25f);
         bulletAppState.getPhysicsSpace().add(rockPhy);
+        bulletAppState.getPhysicsSpace().addCollisionListener(rockPhy);
         rockPhy.setAngularFactor(new Vector3f(0, 1, 0));
         rockPhy.setAngularDamping(0.20f);
+
         //set shadows for rocks
         rock.getRockModel().setShadowMode(ShadowMode.CastAndReceive);
         //add rock and physics control to arrays
@@ -544,6 +571,7 @@ public class Main extends SimpleApplication implements ScreenController {
                     cam.setLocation(new Vector3f(-154.96962f, 59.868954f, -6.3394666f));
                     cam.lookAtDirection(new Vector3f(-0.06880015f, -0.99767405f, 0), new Vector3f(0, 1, 0));
                     alternateCamAngle = true;
+                    flyCam.setEnabled(false);
                 }
                 if (name.equals("get1") && !keyPressed) {
                     alternateCamAngle = false;
@@ -553,6 +581,7 @@ public class Main extends SimpleApplication implements ScreenController {
                     cam.setLocation(new Vector3f(-35.68889f, 38.272602f, -6.9257717f));
                     cam.lookAtDirection(new Vector3f(-0.86378217f, -0.50366956f, -0.015845418f), new Vector3f(0, 1, 0));
                     alternateCamAngle = true;
+                    flyCam.setEnabled(false);
                 }
                 if (name.equals("get2") && !keyPressed) {
                     alternateCamAngle = false;
@@ -562,6 +591,7 @@ public class Main extends SimpleApplication implements ScreenController {
                     cam.setLocation(new Vector3f(67.61219f, 18.359352f, -56.51864f));
                     cam.lookAtDirection(new Vector3f(-0.904703f, -0.17295352f, 0.38940513f), new Vector3f(0, 1, 0));
                     alternateCamAngle = true;
+                    flyCam.setEnabled(false);
                 }
                 if (name.equals("get3") && !keyPressed) {
                     alternateCamAngle = false;
@@ -612,7 +642,7 @@ public class Main extends SimpleApplication implements ScreenController {
     public void throwRock(ArrayList<YLockControl> physTeam) {
         if (shotDone.get(physTeam.size() - 1) == false) {
             physTeam.get(physTeam.size() - 1).setLinearVelocity(new Vector3f(-velocityY, 0, -velocityX));
-            float random = (float) ((Math.random() <= 0.5) ? (Math.random() * -5) : (Math.random() * 5));
+            float random = (float) ((Math.random() <= 0.5) ? (Math.random() * -10) : (Math.random() * 10));
             physTeam.get(physTeam.size() - 1).setAngularVelocity(new Vector3f(0, random, 0));
             shotDone.set(physTeam.size() - 1, true);
             scoreboard.setTotalShots(scoreboard.getTotalShots() + 1);
