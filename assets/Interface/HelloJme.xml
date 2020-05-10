@@ -102,6 +102,9 @@
         <layer id="foreground" childLayout="vertical">
             <panel id="panel_top1" width="100%" height="1%"  childLayout="horizontal">
             </panel>
+            <panel id="round" width="17%" height="3%" align="right" childLayout="horizontal">
+                <text id="roundNumber" text="round 1" font="Interface/Fonts/GillSansUltraBold.fnt"/>
+            </panel>
             <panel id="panel_top2" width="25%" height="3%"  align="right" childLayout="horizontal">
                 <text id="team1"  text="x"  font="Interface/Fonts/GillSansUltraBold.fnt" width="50%" height="100%"/>
                 <text id="scoreTeam1"  text="x"  font="Interface/Fonts/GillSansUltraBold.fnt" width="50%" height="100%"/>
@@ -111,13 +114,39 @@
                 <text id="team2" text="x" font="Interface/Fonts/GillSansUltraBold.fnt"  width="50%" height="100%"/>
                 <text id="scoreTeam2" text="x"  font="Interface/Fonts/GillSansUltraBold.fnt" width="50%" height="100%"/>
             </panel>
-                
-                
-                
+            <panel id="enterMessage"  childLayout="vertical" align="center">
+                <text id="pressEnter" color="#000f" text="" font="Interface/Fonts/ComicSansMS.fnt" />
+            </panel>
             
-            
-        </layer>
+            <panel id="instruction window" childLayout="vertical" align="top" >
+            <control id="window-3" backgroundColor="00000"name="window" title="Rules and Controls" width="800px" height="600px" x="400px" >
+         <text wrap="true"font="Interface/Fonts/Elephant.fnt" text="The goal of the game is to get your curling rock close to the button. The button is the middle point of the house which is the area covered by the circles. Each team will shoot 4 rocks, in alternance, attempting to get the closest to the button. When a rock is thrown, you will be able to change the velocity of the rock by pressing   SPACEBAR.  It will reduce friction, making the rock move for a longer time.After 8 rocks have been thrown in total, the round, also known as the end, is ended.
+
+ The team with the rock closest to the button earns 1 point, with additional points if they have rocks closer to the button then their opponent. Only rocks positioned in the house can earn a point. The game will go on for 10 rounds and the winner is the team with the most point at the end. 
+&#10;
+&#10;
+Controls:
+&#10;
+Shoot: left click+drag
+&#10;
+Brush: spacebar
+&#10;
+Pause: p (to come)
+&#10;
+Camera angle 1: 1
+&#10;
+Camera angle 2: 2
+&#10;
+Camera angle 3: 3
+
+"  color="#000f" valign="center" width="100%" />
+       </control>
+            </panel>
+        </layer>     
     </screen>
+    
+    
+    
     //option screen
     <screen id="option" controller="mygame.Main">
          
@@ -158,7 +187,7 @@
         
         
     </screen>
-    
+    //sound screen
     <screen id="sound" controller="mygame.Main">
          <layer id="foreground" childLayout="vertical" >
              
