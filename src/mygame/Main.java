@@ -49,6 +49,7 @@ import de.lessvoid.nifty.screen.ScreenController;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import javax.swing.Popup;
 
 //main class
 public class Main extends SimpleApplication implements ScreenController {
@@ -183,9 +184,9 @@ public class Main extends SimpleApplication implements ScreenController {
         collisionSound = new AudioNode(assetManager, "Sounds/rock_collision.wav", DataType.Buffer);
         collisionSound.setPositional(false);
         collisionSound.setLooping(false);
-        collisionSound.setVolume(0.1f);
+        collisionSound.setVolume(0.07f);
 
-        backgroundSound = new AudioNode(assetManager, "Sounds/curling_background.wav", DataType.Stream);
+        backgroundSound = new AudioNode(assetManager, "Sounds/curling_background.wav", DataType.Buffer);
         backgroundSound.setPositional(false);
         backgroundSound.setLooping(true);
         backgroundSound.setVolume(1);
@@ -195,7 +196,7 @@ public class Main extends SimpleApplication implements ScreenController {
         rockToBoard = new AudioNode(assetManager, "Sounds/thud.wav", DataType.Buffer);
         rockToBoard.setPositional(true);
         rockToBoard.setLooping(false);
-        rockToBoard.setVolume(0.05f);
+        rockToBoard.setVolume(0.1f);
 
         //Enable physics
         bulletAppState = new BulletAppState();
@@ -278,6 +279,8 @@ public class Main extends SimpleApplication implements ScreenController {
                     getDistanceFromCenter(centerPos);
                     //get the team that scores and the number of points they score in one particular round
                     calculateScore(distanceFromCenterTeam1, distanceFromCenterTeam2, rockTeam1, rockTeam2, controlTeam1, controlTeam2);
+                    //show end of round message
+                    showEndOfRoundMessage();
                     //display score after each round
                     displayScore();
                     roundIsDone = false;
@@ -332,6 +335,7 @@ public class Main extends SimpleApplication implements ScreenController {
                     }
                     getDistanceFromCenter(centerPos);
                     calculateScore(distanceFromCenterTeam1, distanceFromCenterTeam2, rockTeam1, rockTeam2, controlTeam1, controlTeam2);
+                    showEndOfRoundMessage();
                     displayScore();
                     roundIsDone = false;
                 }
@@ -642,7 +646,7 @@ public class Main extends SimpleApplication implements ScreenController {
     public void throwRock(ArrayList<YLockControl> physTeam) {
         if (shotDone.get(physTeam.size() - 1) == false) {
             physTeam.get(physTeam.size() - 1).setLinearVelocity(new Vector3f(-velocityY, 0, -velocityX));
-            float random = (float) ((Math.random() <= 0.5) ? (Math.random() * -8) : (Math.random() * 8));
+            float random = (float) ((Math.random() <= 0.5) ? (Math.random() * -5) : (Math.random() * 5));
             physTeam.get(physTeam.size() - 1).setAngularVelocity(new Vector3f(0, random, 0));
             shotDone.set(physTeam.size() - 1, true);
             scoreboard.setTotalShots(scoreboard.getTotalShots() + 1);
@@ -711,6 +715,9 @@ public class Main extends SimpleApplication implements ScreenController {
         //update boolean values for shots
         Collections.fill(shotDone, Boolean.FALSE);
         shotDone.set(0, true);
+        //update round number showed on hud screen
+        updateRoundDisplayed();
+        discardEndOfRoundMessage();
     }
 
     @Override
@@ -743,13 +750,19 @@ public class Main extends SimpleApplication implements ScreenController {
 
     public void teamSelection(String nextScreen) {
 
-        nifty.gotoScreen(nextScreen);
+        nifty.gotoScreen("hud");
         unlockCommand();
         team1();
         team2();
         scoreTeam1();
         scoreTeam2();
         gameIsStarted = true;
+
+    }
+
+    public void closePopup() {
+        nifty.gotoScreen("hud");
+
     }
 
     @NiftyEventSubscriber(id = "imageSelect1")
@@ -815,19 +828,19 @@ public class Main extends SimpleApplication implements ScreenController {
         String team1Name;
         switch (event1.getSelectedIndex()) {
             case 0:
-                team1Name = "ITALY";
+                team1Name = "Italy";
                 break;
             case 1:
-                team1Name = "FINLAND";
+                team1Name = "Finland";
                 break;
             case 2:
-                team1Name = "CHINA";
+                team1Name = "China";
                 break;
             case 3:
                 team1Name = "USA";
                 break;
             case 4:
-                team1Name = "SWEDEN";
+                team1Name = "Sweden";
                 break;
             default:
                 team1Name = "Italy";
@@ -840,19 +853,19 @@ public class Main extends SimpleApplication implements ScreenController {
         String team2Name;
         switch (event2.getSelectedIndex()) {
             case 0:
-                team2Name = "ITALY";
+                team2Name = "Italy";
                 break;
             case 1:
-                team2Name = "FINLAND";
+                team2Name = "Finland";
                 break;
             case 2:
-                team2Name = "CHINA";
+                team2Name = "China";
                 break;
             case 3:
                 team2Name = "USA";
                 break;
             case 4:
-                team2Name = "SWEDEN";
+                team2Name = "Sweden";
                 break;
             default:
                 team2Name = "Italy";
@@ -861,16 +874,34 @@ public class Main extends SimpleApplication implements ScreenController {
         return team2Name;
     }
 
+    //sends the round number to the hud
+    public void updateRoundDisplayed() {
+        // find old text
+        Element niftyElement = nifty.getScreen("hud").findElementById("roundNumber");
+        // swap old with new text
+        niftyElement.getRenderer(TextRenderer.class).setText("Round " + Integer.toString(scoreboard.getRound() + 1));
+    }
+
     public void unlockCommand() {
 
-        try {
-
-//        TimeUnit.SECONDS.sleep(5);
-        } catch (Exception ex) {
-            System.out.print("Delai exception");
-        }
         unlockCommands = true;
 
+    }
+
+    //show end of round message
+    public void showEndOfRoundMessage() {
+        // find old text
+        Element niftyElement = nifty.getScreen("hud").findElementById("pressEnter");
+        // swap old with new text
+        niftyElement.getRenderer(TextRenderer.class).setText("Press ENTER to begin next round");
+    }
+    //discard end of round message
+
+    public void discardEndOfRoundMessage() {
+        // find old text
+        Element niftyElement = nifty.getScreen("hud").findElementById("pressEnter");
+        // swap old with new text
+        niftyElement.getRenderer(TextRenderer.class).setText("");
     }
 
     public void option(String nextScreen) {
