@@ -118,7 +118,7 @@ public class Main extends SimpleApplication implements ScreenController {
     private float shotY = 0;
     private float velocityX;
     private float velocityY;
-    
+
     private float cylinderRadius;
 
     //Used to check if the rocks are in house
@@ -175,7 +175,8 @@ public class Main extends SimpleApplication implements ScreenController {
         //randomly chose which team has the hammer
         initialHammer = (Math.random() <= 0.5) ? 1 : 2;
         scoreboard.setHammer(initialHammer);
-
+        scoreboard.setTeam1Name(team1Name);
+        scoreboard.setTeam2Name(team2Name);
         //set initial round
         scoreboard.setRound(0);
 
@@ -221,8 +222,7 @@ public class Main extends SimpleApplication implements ScreenController {
             scoreTeam1();
             scoreTeam2();
         }
-        
-        
+
         //check if there are still rounds to be played
         if (scoreboard.getRound() < scoreboard.getNumberOfRounds()) {
             //check which team has the hammer (the last shot)
@@ -263,8 +263,6 @@ public class Main extends SimpleApplication implements ScreenController {
                 //update physics controls
                 for (int i = 0; i < physTeam.size(); i++) {
                     physTeam.get(i).controlUpdate(tpf, originRockPos.getY());
-//                    physTeam.get(i).prePhysicsTick(bulletAppState.getPhysicsSpace(), tpf);
-//                    physTeam.get(i).physicsTick(bulletAppState.getPhysicsSpace(), tpf);
                 }
 
                 //if all shots have been completed and the rocks are motionless, the round is done
@@ -393,7 +391,7 @@ public class Main extends SimpleApplication implements ScreenController {
                 gameIsFinished = false;
             }
         }
-        
+
     }
 
 
@@ -609,8 +607,7 @@ public class Main extends SimpleApplication implements ScreenController {
                         physTeam.get(physTeam.size() - 1).setLinearDamping(physTeam.get(physTeam.size() - 1).getLinearDamping() - 0.005f);
                     }
                 }
-                
-        
+
                 //catch NullPointerExcetion errors
             } catch (NullPointerException ex) {
                 System.out.print("null");
@@ -722,6 +719,7 @@ public class Main extends SimpleApplication implements ScreenController {
         shotDone.set(0, true);
         //update round number showed on hud screen
         updateRoundDisplayed();
+        updateHammer();
         discardEndOfRoundMessage();
     }
 
@@ -834,21 +832,27 @@ public class Main extends SimpleApplication implements ScreenController {
         switch (event1.getSelectedIndex()) {
             case 0:
                 team1Name = "Italy";
+                scoreboard.setTeam1Name("Italy");
                 break;
             case 1:
                 team1Name = "Finland";
+                scoreboard.setTeam1Name("Finland");
                 break;
             case 2:
                 team1Name = "China";
+                scoreboard.setTeam1Name("China");
                 break;
             case 3:
                 team1Name = "USA";
+                scoreboard.setTeam1Name("USA");
                 break;
             case 4:
                 team1Name = "Sweden";
+                scoreboard.setTeam1Name("Sweden");
                 break;
             default:
                 team1Name = "Italy";
+                scoreboard.setTeam1Name("Italy");
         }
 
         return team1Name;
@@ -859,21 +863,27 @@ public class Main extends SimpleApplication implements ScreenController {
         switch (event2.getSelectedIndex()) {
             case 0:
                 team2Name = "Italy";
+                scoreboard.setTeam2Name("Italy");
                 break;
             case 1:
                 team2Name = "Finland";
+                scoreboard.setTeam2Name("Finland");
                 break;
             case 2:
                 team2Name = "China";
+                scoreboard.setTeam2Name("China");
                 break;
             case 3:
                 team2Name = "USA";
+                scoreboard.setTeam2Name("USA");
                 break;
             case 4:
                 team2Name = "Sweden";
+                scoreboard.setTeam2Name("Sweden");
                 break;
             default:
                 team2Name = "Italy";
+                scoreboard.setTeam2Name("Italy");
         }
 
         return team2Name;
@@ -893,15 +903,55 @@ public class Main extends SimpleApplication implements ScreenController {
 
     }
 
+    //MAXIME: METHOD THAT SAYS TO USER WHO HAS THE HAMMER!!!!!!!!!!!!!***********************************************************
+    /* Max j'imagine que tu seras pas capable de faire de pop ups pr le hammer, alors j'ai pensé
+    que tu pourrais juste mettre une petite boite en bas a droite pi dire qqch comme:
+    "TEAM USA has the hammer this round" pi tu le update a chaque round en mm temps que le round number*/
+ /* 
+    
+    Ce que tu as à faire Max:
+        1) Mettre le message de qui a le Hammer (avec updateHammer() juste en bas)
+        2) Mettre le nom des équipes en couleur dans le scoreboard (team1 = roches rouges; team2 = roches jaunes)
+        3) Mettre un message pour qui a gagné la partie après les 10 rondes (voir la methode showEndOfRoundMessage()) 
+        4) Si possible, essaye de dire, au début de chaque manche qui commence par lancer. Fait comme ca
+            /*  if(scoreboard.getHammer()== 2){
+                //print: setText("TEAM " + scoreboard.getTeam1Name() + " starts this round");
+                } else{
+                //print: setText("TEAM " + scoreboard.getTeam2Name() + " starts this round");
+                }   
+    
+    j'ai déja commencé plusieurs methodes mais jsp comment les faire au complet
+     */
+    //mettre ce texte dans le coin en bas à droite, j'ai déjà call la method en haut, en mm temps que updateRound
+    public void updateHammer() {
+        //check if the game is finished
+        if (scoreboard.getRound() < scoreboard.getNumberOfRounds()) {
+            if (scoreboard.getHammer() == 2) {
+                //print: .setText("Team " + scoreboard.getTeam2Name() + " has the hammer this round");
+            } else {
+                //print: .setText("Team " + scoreboard.getTeam1Name() + " has the hammer this round");
+            }
+        } else {
+            //if the game is finished do not update the hammer
+            //print: "null"
+        }
+    }
+
     //show end of round message
     public void showEndOfRoundMessage() {
-        // find old text
-        Element niftyElement = nifty.getScreen("hud").findElementById("pressEnter");
-        // swap old with new text
-        niftyElement.getRenderer(TextRenderer.class).setText("Press ENTER to begin next round");
+        //check if the game is finished
+        if (scoreboard.getRound() < scoreboard.getNumberOfRounds()) {
+            // find old text
+            Element niftyElement = nifty.getScreen("hud").findElementById("pressEnter");
+            // swap old with new text
+            niftyElement.getRenderer(TextRenderer.class).setText(scoreboard.getRoundWinner() + "\n\nPress ENTER to begin next round");
+        } else {
+            //if the game is finished, display the game winner
+            //print: setText(scoreboard.getGameWinner)
+        }
     }
-    //discard end of round message
 
+    //discard end of round message
     public void discardEndOfRoundMessage() {
         // find old text
         Element niftyElement = nifty.getScreen("hud").findElementById("pressEnter");
@@ -1079,7 +1129,6 @@ public class Main extends SimpleApplication implements ScreenController {
         extremity = sceneNode.getChild("Extremity").getLocalTranslation();
         cylinderRadius = centerPos.distance(extremity);
 
-
         //Reposition the houses' circles in the scene to be over the ice surface)
         sceneNode.getChild("big_ring_backHouse").removeControl(sceneGeo);
         sceneNode.getChild("big_ring_backHouse").move(0, 0.1f, 0);
@@ -1198,16 +1247,12 @@ public class Main extends SimpleApplication implements ScreenController {
         arrowGeo.setLocalTranslation(originRockPos.add(2, 1, 2));
         arrowGeo.setName("arrowGeo");
 
-
         Quaternion x90 = new Quaternion();
         x90.fromAngleAxis(FastMath.PI / 2, new Vector3f(1, 0, 0));
 
-        
         Quaternion y180 = new Quaternion();
         y180.fromAngleAxis(FastMath.PI, new Vector3f(0, 1, 0));
         firstArrowRotation = x90.mult(y180);
-
-
 
         //attaching spatials to rootNode
         rootNode.attachChild(floorScene);
