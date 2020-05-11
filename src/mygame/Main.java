@@ -118,6 +118,8 @@ public class Main extends SimpleApplication implements ScreenController {
     private float shotY = 0;
     private float velocityX;
     private float velocityY;
+    
+    private float cylinderRadius;
 
     //Used to check if the rocks are in house
     private Quaternion arrowRotation = new Quaternion();
@@ -205,7 +207,6 @@ public class Main extends SimpleApplication implements ScreenController {
 
         //adding physics to physicsSpace
         bulletAppState.getPhysicsSpace().add(sceneGeo);
-        bulletAppState.getPhysicsSpace().add(houseGhost);
 
         //camera parameters
         flyCam.setMoveSpeed(50f);
@@ -220,7 +221,8 @@ public class Main extends SimpleApplication implements ScreenController {
             scoreTeam1();
             scoreTeam2();
         }
-
+        
+        
         //check if there are still rounds to be played
         if (scoreboard.getRound() < scoreboard.getNumberOfRounds()) {
             //check which team has the hammer (the last shot)
@@ -391,6 +393,7 @@ public class Main extends SimpleApplication implements ScreenController {
                 gameIsFinished = false;
             }
         }
+        
     }
 
 
@@ -488,13 +491,13 @@ public class Main extends SimpleApplication implements ScreenController {
     public void updateInHouse() {
         for (int i = 0; i < 4; i++) {
 
-            if (houseGhost.getOverlappingObjects().contains(controlTeam1[i])) {
+            if (rockTeam1[i].getRockModel().getLocalTranslation().distance(centerPos) < cylinderRadius) {
                 rockTeam1[i].setInHouse(true);
             } else {
                 rockTeam1[i].setInHouse(false);
             }
 
-            if (houseGhost.getOverlappingObjects().contains(controlTeam2[i])) {
+            if (rockTeam2[i].getRockModel().getLocalTranslation().distance(centerPos) < cylinderRadius) {
                 rockTeam2[i].setInHouse(true);
             } else {
                 rockTeam2[i].setInHouse(false);
@@ -606,6 +609,8 @@ public class Main extends SimpleApplication implements ScreenController {
                         physTeam.get(physTeam.size() - 1).setLinearDamping(physTeam.get(physTeam.size() - 1).getLinearDamping() - 0.005f);
                     }
                 }
+                
+        
                 //catch NullPointerExcetion errors
             } catch (NullPointerException ex) {
                 System.out.print("null");
@@ -996,6 +1001,7 @@ public class Main extends SimpleApplication implements ScreenController {
 
     //Method to set all the textures to the objects in the scene
     public void setCoordinates() {
+
         sceneNode = (Node) floorScene;
 
         //Material for the rink's ice
@@ -1071,6 +1077,8 @@ public class Main extends SimpleApplication implements ScreenController {
         camView = sceneNode.getChild("camView").getLocalTranslation();
         centerPos = sceneNode.getChild("Center").getLocalTranslation();
         extremity = sceneNode.getChild("Extremity").getLocalTranslation();
+        cylinderRadius = centerPos.distance(extremity);
+
 
         //Reposition the houses' circles in the scene to be over the ice surface)
         sceneNode.getChild("big_ring_backHouse").removeControl(sceneGeo);
@@ -1190,29 +1198,18 @@ public class Main extends SimpleApplication implements ScreenController {
         arrowGeo.setLocalTranslation(originRockPos.add(2, 1, 2));
         arrowGeo.setName("arrowGeo");
 
-        //creation of cylinder node
-        float cylinderRadius = centerPos.distance(extremity);
-        Cylinder cylinder = new Cylinder(100, 100, cylinderRadius - 5f, 3f);
-        Geometry cylin = new Geometry("Cylinder", cylinder);
+
         Quaternion x90 = new Quaternion();
         x90.fromAngleAxis(FastMath.PI / 2, new Vector3f(1, 0, 0));
 
-        //create detection shape for detection of collision inside house
-        MeshCollisionShape ghostShape = new MeshCollisionShape(cylin.getMesh());
-        houseGhost = new GhostControl(ghostShape);
-        cylin.addControl(houseGhost);
-        cylin.setLocalRotation(x90);
-        cylin.setLocalTranslation(centerPos);
+        
         Quaternion y180 = new Quaternion();
         y180.fromAngleAxis(FastMath.PI, new Vector3f(0, 1, 0));
         firstArrowRotation = x90.mult(y180);
 
-        //setting materials to spatials
-        cylin.setQueueBucket(Bucket.Translucent);
-        cylin.setMaterial(transMat);
+
 
         //attaching spatials to rootNode
-        rootNode.attachChild(cylin);
         rootNode.attachChild(floorScene);
     }
 }
