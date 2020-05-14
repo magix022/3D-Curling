@@ -91,7 +91,35 @@
             
         </layer>
         
-        
+        <layer id="foreground" childLayout="vertical" width="100%" height="100%">
+            <panel id="instruction window" childLayout="vertical" align="top" >
+                <control id="window-3" backgroundColor="00000"name="window" title="Rules and Controls" width="800px" height="600px" x="400px" >
+                    <text wrap="true"font="Interface/Fonts/Elephant.fnt" text="The goal of the game is to get your curling rock as close as possible to the button of the house. The button is the middle point of the house, the area determined by the coloured circles at the other extremity of the ice. Both players shot in alternance, attempting to get their rocks closest to the button. While a rock is sliding across, a player can change the velocity of his rock by pressing repeatedly on   SPACEBAR.  This will reduce the friction between the ice and the curling stone allowing the stone to go faster and farther while sliding. After both players have shot their 4 rocks, for a total of 8 rocks in play, the round, also known as the end, ends.
+
+                        The player whose rock is the closest to the button earns 1 point. The same player earns additional points if he has other rocks closer to the button then his opponent's closest rock. Only rocks positioned inside the house can award points. A game lasts 10 rounds. The player who has the most points at the end of the game wins.
+                       &#10;
+                       &#10;
+                       Controls:
+                       &#10;
+                       Shoot: LEFT CLICK + DRAG
+                       &#10;
+                       Brush: SPACEBAR
+                       &#10;
+                       Pause: P (to come)
+                       &#10;
+                       Camera angle 1: 1
+                       &#10;
+                       Camera angle 2: 2
+                       &#10;
+                       Camera angle 3: 3
+                       &#10;
+                       Go to next round: ENTER
+
+                       "  color="#000f" valign="center" width="100%">
+                    </text>
+                </control>
+            </panel>
+        </layer>
     </screen>
     
     
@@ -102,47 +130,31 @@
         <layer id="foreground" childLayout="vertical">
             <panel id="panel_top1" width="100%" height="1%"  childLayout="horizontal">
             </panel>
+            
             <panel id="round" width="17%" height="3%" align="right" childLayout="horizontal">
                 <text id="roundNumber" text="Round 1" font="Interface/Fonts/GillSansUltraBold.fnt"/>
             </panel>
+            
             <panel id="panel_top2" width="25%" height="3%"  align="right" childLayout="horizontal">
-                <text id="team1"  text="x"  font="Interface/Fonts/GillSansUltraBold.fnt" width="50%" height="100%"/>
+                <text id="team1"  text="x"  font="Interface/Fonts/GillSansUltraBold.fnt" width="50%" height="100%" color="#FF0000"/>
                 <text id="scoreTeam1"  text="x"  font="Interface/Fonts/GillSansUltraBold.fnt" width="50%" height="100%"/>
             </panel>
                 
-                <panel id="panel_top3" width="25%" height="3%" align="right" childLayout="horizontal">
-                <text id="team2" text="x" font="Interface/Fonts/GillSansUltraBold.fnt"  width="50%" height="100%"/>
+            <panel id="panel_top3" width="25%" height="3%" align="right" childLayout="horizontal">
+                <text id="team2" text="x" font="Interface/Fonts/GillSansUltraBold.fnt"  width="50%" height="100%" color="#FFE300"/>
                 <text id="scoreTeam2" text="x"  font="Interface/Fonts/GillSansUltraBold.fnt" width="50%" height="100%"/>
             </panel>
+            
             <panel id="enterMessage"  childLayout="vertical" align="center">
                 <text id="pressEnter" color="#000f" text="" font="Interface/Fonts/ComicSansMS.fnt" />
             </panel>
             
-            <panel id="instruction window" childLayout="vertical" align="top" >
-            <control id="window-3" backgroundColor="00000"name="window" title="Rules and Controls" width="800px" height="600px" x="400px" >
-         <text wrap="true"font="Interface/Fonts/Elephant.fnt" text="The goal of the game is to get your curling rock as close as possible to the button of the house. The button is the middle point of the house, the area determined by the coloured circles at the other extremity of the ice. Both players shot in alternance, attempting to get their rocks closest to the button. While a rock is sliding across, a player can change the velocity of his rock by pressing repeatedly on   SPACEBAR.  This will reduce the friction between the ice and the curling stone allowing the stone to go faster and farther while sliding. After both players have shot their 4 rocks, for a total of 8 rocks in play, the round, also known as the end, ends.
-
- The player whose rock is the closest to the button earns 1 point. The same player earns additional points if he has other rocks closer to the button then his opponent's closest rock. Only rocks positioned inside the house can award points. A game lasts 10 rounds. The player who has the most points at the end of the game wins.
-&#10;
-&#10;
-Controls:
-&#10;
-Shoot: LEFT CLICK + DRAG
-&#10;
-Brush: SPACEBAR
-&#10;
-Pause: P (to come)
-&#10;
-Camera angle 1: 1
-&#10;
-Camera angle 2: 2
-&#10;
-Camera angle 3: 3
-&#10;
-Go to next round: ENTER
-
-"  color="#000f" valign="center" width="100%" />
-       </control>
+            <panel id="playerTurn" childLayout="vertical" align="center">
+                <text id="playerTurnText" color="#000f" text="" font="Interface/Fonts/ComicSansMS.fnt">
+                    <effect>
+                        <onEnabled name="fade" start="#f" end="#0" length="5000"/>
+                    </effect>
+                </text>
             </panel>
         </layer>     
     </screen>
@@ -179,11 +191,7 @@ Go to next round: ENTER
                     </control>
                 </panel>
                 
-                
-              </panel>
-                
-                
-            
+            </panel>
             
         </layer>
         
@@ -199,19 +207,21 @@ Go to next round: ENTER
              
              <panel id="panel_center" height="50%" width="50%" childLayout="vertical" align="center" >
                  
-                 <panel id="panel_slider" height="33%" width="100%" childLayout="vertical" align="center">
-                 <control id="sliderH" name="horizontalSlider" width="80%" />
-                 </panel>
+                <panel id="panel_slider" height="33%" width="100%" childLayout="vertical" align="center">
+                    <control id="sliderH" name="horizontalSlider" width="80%" >
+                     
+                    </control>
+                </panel>
                  
                  
-                 <panel id="panel_slider" height="33%" width="100%" childLayout="Horizontal" align="center" >
+                <panel id="panel_slider" height="33%" width="100%" childLayout="Horizontal" align="center" >
                      
                      <panel id="left_panel" height="100%" width="45%" childLayout="horizontal" align="left" >
                      </panel>
-                <control id="checkBox" name="checkbox" label="sound on/off" align="center" /> 
-                  
-                <control name="label" text="Sound on/off"/>
-                 </panel>
+                    <control id="checkBox" name="checkbox" label="sound on/off" align="center" /> 
+                        
+                    <control name="label" text="Sound on/off"/>
+                </panel>
                  
                  
                  <panel id="panel_return" height="33%" width="100%" childLayout="Horizontal" align="center" >
