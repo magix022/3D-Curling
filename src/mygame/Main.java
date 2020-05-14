@@ -405,7 +405,7 @@ public class Main extends SimpleApplication implements ScreenController {
         //arrange rock friction when there is no brushing
         //listener for in-game the mouse and keyboard actions
         inputManager.addListener(actionListener, "throw");
-        inputManager.addListener(actionListener, "stop");
+//        inputManager.addListener(actionListener, "stop");
         inputManager.addListener(actionListener, "resetRound");
         inputManager.addListener(actionListener, "damping");
         inputManager.addListener(actionListener, "get1");
@@ -589,9 +589,9 @@ public class Main extends SimpleApplication implements ScreenController {
                     rootNode.getChild("arrowGeo").removeFromParent();
                 }
                 //stops rock
-                if (name.equals("stop") && !keyPressed && unlockCommands) {
-                    stopRock();
-                }
+//                if (name.equals("stop") && !keyPressed && unlockCommands) {
+//                    stopRock();
+//                }
                 //pressing 1 will switch to alternate camera angle 1
                 if (name.equals("get1") && keyPressed) {
                     cam.setLocation(new Vector3f(-154.96962f, 59.868954f, -6.3394666f));
@@ -1289,7 +1289,7 @@ public void dropDownList(){
     public void initMapping() {
         //creation of command mapping for in-game keyboard and mouse controls
         inputManager.addMapping("throw", new MouseButtonTrigger(MouseInput.BUTTON_LEFT));
-        inputManager.addMapping("stop", new MouseButtonTrigger(MouseInput.BUTTON_RIGHT));
+//        inputManager.addMapping("stop", new MouseButtonTrigger(MouseInput.BUTTON_RIGHT));
         inputManager.addMapping("resetRound", new KeyTrigger(KeyInput.KEY_RETURN));
         inputManager.addMapping("get1", new KeyTrigger(KeyInput.KEY_1));
         inputManager.addMapping("get2", new KeyTrigger(KeyInput.KEY_2));
