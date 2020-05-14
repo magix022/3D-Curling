@@ -41,7 +41,13 @@ import com.jme3.shadow.PointLightShadowRenderer;
 import com.jme3.texture.Texture;
 import de.lessvoid.nifty.Nifty;
 import de.lessvoid.nifty.NiftyEventSubscriber;
+import de.lessvoid.nifty.controls.CheckBoxStateChangedEvent;
+import de.lessvoid.nifty.controls.DropDown;
 import de.lessvoid.nifty.controls.ImageSelectSelectionChangedEvent;
+import de.lessvoid.nifty.controls.ListBox;
+import de.lessvoid.nifty.controls.ListBoxSelectionChangedEvent;
+import de.lessvoid.nifty.controls.SliderChangedEvent;
+import de.lessvoid.nifty.controls.dropdown.DropDownControl;
 import de.lessvoid.nifty.controls.slider.SliderControl;
 import de.lessvoid.nifty.elements.Element;
 import de.lessvoid.nifty.elements.render.TextRenderer;
@@ -50,6 +56,7 @@ import de.lessvoid.nifty.screen.ScreenController;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import javax.swing.Popup;
 
 //main class
@@ -145,6 +152,8 @@ public class Main extends SimpleApplication implements ScreenController {
 
     ImageSelectSelectionChangedEvent event1;
     ImageSelectSelectionChangedEvent event2;
+    SliderChangedEvent event3;
+    CheckBoxStateChangedEvent event4;
     Screen ScreenHud;
     String team1Name = "Italy";
     String team2Name = "Italy";
@@ -200,7 +209,7 @@ public class Main extends SimpleApplication implements ScreenController {
         backgroundSound.setLooping(true);
         backgroundSound.setVolume(1);
         rootNode.attachChild(backgroundSound);
-//        backgroundSound.play();
+        backgroundSound.play();
 
         rockToBoard = new AudioNode(assetManager, "Sounds/thud.wav", DataType.Buffer);
         rockToBoard.setPositional(true);
@@ -758,7 +767,40 @@ public class Main extends SimpleApplication implements ScreenController {
         System.out.print("startgame");
 
         nifty.gotoScreen(nextScreen);
+        dropDownList();
 
+    }
+    
+      @NiftyEventSubscriber(id = "sliderH")
+    public void soundBar(String id, SliderChangedEvent event) {
+        event3 = event;
+        //get sound volume from slider
+       float volumeValue=event3.getValue();
+      //sets sound with slider in option menu
+    collisionSound.setVolume(volumeValue/100);
+    rockToBoard.setVolume(volumeValue/100);
+    backgroundSound.setVolume(volumeValue/100);
+      
+    }
+     @NiftyEventSubscriber(id = "checkBox")
+    public void isMuted(String id, CheckBoxStateChangedEvent event) {
+        event4 = event;
+        //get sound volume from slider
+       boolean isChecked=event4.isChecked();
+       //check if sound muted is desired
+       if(isChecked){
+      //mute sound
+    collisionSound.setVolume(0);
+    rockToBoard.setVolume(0);
+    backgroundSound.setVolume(0);
+       }
+       else{
+           collisionSound.setVolume(0.07f);
+           rockToBoard.setVolume(1);
+           backgroundSound.setVolume(0.1f);
+           
+       }
+      
     }
 
     public void teamSelection(String nextScreen) {
@@ -770,6 +812,7 @@ public class Main extends SimpleApplication implements ScreenController {
         scoreTeam1();
         scoreTeam2();
         gameIsStarted = true;
+        
 
         if (scoreboard.getHammer() == 2) {
             playerTurn(1);
@@ -904,7 +947,33 @@ public class Main extends SimpleApplication implements ScreenController {
 
         return team2Name;
     }
-
+     
+public void dropDownList(){
+      
+    ListBox listBox = nifty.getScreen("teamSelect").findNiftyControl("myListBox", ListBox.class);
+    //add items to the listBox
+    listBox.addItem("Please Select Number Of round");
+    listBox.addItem("4");
+    listBox.addItem("6");
+    listBox.addItem("8");
+    listBox.addItem("10");
+    
+}
+ @NiftyEventSubscriber(id="myListBox")
+  public void onMyListBoxSelectionChanged(final String id, final ListBoxSelectionChangedEvent event) {
+    List<String> selection = event.getSelection();
+    for (String selectedItem : selection) {
+        if(selectedItem=="Please Select Number Of round"){
+            //if user does not select anything set number of round to default 10
+            scoreboard.setNumberOfRounds(Integer.parseInt("10"));
+        }
+        else{
+        //sets number of round
+ scoreboard.setNumberOfRounds(Integer.parseInt(selectedItem));
+        }
+    }
+    }
+  
     //sends the round number to the hud
     public void updateRoundDisplayed() {
         // find old text
