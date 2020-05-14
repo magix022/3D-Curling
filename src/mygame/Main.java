@@ -184,16 +184,16 @@ public class Main extends SimpleApplication implements ScreenController {
         initMapping();
         setSpatials();
 
-        //set number of rounds
-        scoreboard.setNumberOfRounds(2);
 
         //randomly chose which team has the hammer
         initialHammer = (Math.random() <= 0.5) ? 1 : 2;
         scoreboard.setHammer(initialHammer);
         scoreboard.setTeam1Name(team1Name);
         scoreboard.setTeam2Name(team2Name);
-        //set initial round
+        
+        scoreboard.setNumberOfRounds(10);
         scoreboard.setRound(0);
+
 
         //Set at true to start first shot, all other values are currently false
         Collections.fill(shotDone, Boolean.FALSE);
@@ -227,6 +227,9 @@ public class Main extends SimpleApplication implements ScreenController {
         //camera parameters
         flyCam.setMoveSpeed(50f);
         flyCam.setDragToRotate(true);
+        
+        setDisplayFps(false);
+        setDisplayStatView(false);
     }
 
     //Game loop that update throughout the game
@@ -408,6 +411,7 @@ public class Main extends SimpleApplication implements ScreenController {
         inputManager.addListener(actionListener, "get1");
         inputManager.addListener(actionListener, "get2");
         inputManager.addListener(actionListener, "get3");
+        inputManager.addListener(actionListener, "pause");
 
     }
 
@@ -624,6 +628,7 @@ public class Main extends SimpleApplication implements ScreenController {
                         physTeam.get(physTeam.size() - 1).setLinearDamping(physTeam.get(physTeam.size() - 1).getLinearDamping() - 0.005f);
                     }
                 }
+                
                 //catch NullPointerExcetion errors
             } catch (NullPointerException ex) {
                 System.out.print("null");
@@ -737,7 +742,6 @@ public class Main extends SimpleApplication implements ScreenController {
         //update round number showed on hud screen
         if (scoreboard.getRound() < scoreboard.getNumberOfRounds()) {
             updateRoundDisplayed();
-            updateHammer();
             discardEndOfRoundMessage();
         }
     }
@@ -765,7 +769,6 @@ public class Main extends SimpleApplication implements ScreenController {
 
     public void startGame(String nextScreen) {
         System.out.print("startgame");
-
         nifty.gotoScreen(nextScreen);
         dropDownList();
 
@@ -806,7 +809,7 @@ public class Main extends SimpleApplication implements ScreenController {
     public void teamSelection(String nextScreen) {
 
         nifty.gotoScreen("hud");
-        unlockCommand();
+        unlockCommands = true;
         team1();
         team2();
         scoreTeam1();
@@ -842,17 +845,16 @@ public class Main extends SimpleApplication implements ScreenController {
         team2Name = getTeam2Name();
 
     }
+    
     //team 1 country selection
-
     public void team1() {
-
         // find old text
         Element niftyElement = nifty.getScreen("hud").findElementById("team1");
         // swap old with new text
         niftyElement.getRenderer(TextRenderer.class).setText(team1Name);
-
-    }//team 1 score
-
+    }
+    
+    //team 1 score
     public void scoreTeam1() {
         int score = scoreboard.getTeam1TotalScore();
         String team1Score = Integer.toString(score);
@@ -863,8 +865,8 @@ public class Main extends SimpleApplication implements ScreenController {
         niftyElement.getRenderer(TextRenderer.class).setText(team1Score);
 
     }
+    
     //team 2 country selection
-
     public void team2() {
 
         // find old text
@@ -873,8 +875,8 @@ public class Main extends SimpleApplication implements ScreenController {
         niftyElement.getRenderer(TextRenderer.class).setText(team2Name);
 
     }
+    
     //team 2 score 
-
     public void scoreTeam2() {
         int score = scoreboard.getTeam2TotalScore();
 
@@ -980,46 +982,6 @@ public void dropDownList(){
         Element niftyElement = nifty.getScreen("hud").findElementById("roundNumber");
         // swap old with new text
         niftyElement.getRenderer(TextRenderer.class).setText("Round " + Integer.toString(scoreboard.getRound() + 1));
-    }
-
-    public void unlockCommand() {
-
-        unlockCommands = true;
-
-    }
-
-    //MAXIME: METHOD THAT SAYS TO USER WHO HAS THE HAMMER!!!!!!!!!!!!!***********************************************************
-    /* Max j'imagine que tu seras pas capable de faire de pop ups pr le hammer, alors j'ai pensé
-    que tu pourrais juste mettre une petite boite en bas a droite pi dire qqch comme:
-    "TEAM USA has the hammer this round" pi tu le update a chaque round en mm temps que le round number*/
- /* 
-    
-    Ce que tu as à faire Max:
-        1) Mettre le message de qui a le Hammer (avec updateHammer() juste en bas)
-        2) Mettre le nom des équipes en couleur dans le scoreboard (team1 = roches rouges; team2 = roches jaunes)
-        3) Mettre un message pour qui a gagné la partie après les 10 rondes (voir la methode showEndOfRoundMessage()) 
-        4) Si possible, essaye de dire, au début de chaque manche qui commence par lancer. Fait comme ca
-            /*  if(scoreboard.getHammer()== 2){
-                //print: setText("TEAM " + scoreboard.getTeam1Name() + " starts this round");
-                } else{
-                //print: setText("TEAM " + scoreboard.getTeam2Name() + " starts this round");
-                }   
-    
-    j'ai déja commencé plusieurs methodes mais jsp comment les faire au complet
-     */
-    //mettre ce texte dans le coin en bas à droite, j'ai déjà call la method en haut, en mm temps que updateRound
-    public void updateHammer() {
-        //check if the game is finished
-        if (scoreboard.getRound() < scoreboard.getNumberOfRounds()) {
-            if (scoreboard.getHammer() == 2) {
-                //print: .setText("Team " + scoreboard.getTeam2Name() + " has the hammer this round");
-            } else {
-                //print: .setText("Team " + scoreboard.getTeam1Name() + " has the hammer this round");
-            }
-        } else {
-            //if the game is finished do not update the hammer
-            //print: "null"
-        }
     }
 
    //show end of round message
@@ -1242,7 +1204,7 @@ public void dropDownList(){
         sceneNode.getChild("small_ring_frontHouse").removeControl(sceneGeo);
         sceneNode.getChild("small_ring_frontHouse").move(0, 0.1f, 0);
 
-//        Add directional light to the scene
+//        Add lights to the scene
         PointLight light = new PointLight();
         light.setColor(ColorRGBA.White);
         light.setPosition(new Vector3f(0, 20, -10.340717f));
@@ -1274,11 +1236,6 @@ public void dropDownList(){
         shadow.setShadowZExtend(500f);
         viewPort.addProcessor(shadow);
 
-//        //Add shadow filter for better and more realistic shadows
-//        FilterPostProcessor fpp = new FilterPostProcessor(assetManager);
-//        SSAOFilter ssaoFilter = new SSAOFilter(12.94f, 43.92f, 0.33f, 0.61f);
-//        fpp.addFilter(ssaoFilter);
-//        viewPort.addProcessor(fpp);
         //Add shadows for particular objects in the scene
         rootNode.setShadowMode(ShadowMode.Off);
         sceneNode.getChild("Ice").setShadowMode(ShadowMode.Receive);
@@ -1338,6 +1295,7 @@ public void dropDownList(){
         inputManager.addMapping("get2", new KeyTrigger(KeyInput.KEY_2));
         inputManager.addMapping("get3", new KeyTrigger(KeyInput.KEY_3));
         inputManager.addMapping("damping", new KeyTrigger(KeyInput.KEY_SPACE));
+        inputManager.addMapping("pause", new KeyTrigger(KeyInput.KEY_P));
         inputManager.setMouseCursor(null);
         inputManager.setCursorVisible(true);
     }
@@ -1366,11 +1324,12 @@ public void dropDownList(){
         niftyTurn = nifty.getScreen("hud").findElementById("playerTurnText");
         niftyTurn.disable();
         if (team == 1) {
-            niftyTurn.getRenderer(TextRenderer.class).setText("Player 1's turn");
+            niftyTurn.getRenderer(TextRenderer.class).setText(scoreboard.getTeam1Name()+"'s turn");
         } else {
-            niftyTurn.getRenderer(TextRenderer.class).setText("Player 2's turn");
+            niftyTurn.getRenderer(TextRenderer.class).setText(scoreboard.getTeam2Name()+"'s turn");
         }
         niftyTurn.enable();
     }
+    
 
 }
