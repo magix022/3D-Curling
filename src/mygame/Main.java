@@ -185,7 +185,7 @@ public class Main extends SimpleApplication implements ScreenController {
         setSpatials();
 
         //set number of rounds
-        scoreboard.setNumberOfRounds(2);
+        scoreboard.setNumberOfRounds(10);
 
         //randomly chose which team has the hammer
         initialHammer = (Math.random() <= 0.5) ? 1 : 2;
@@ -408,6 +408,7 @@ public class Main extends SimpleApplication implements ScreenController {
         inputManager.addListener(actionListener, "get1");
         inputManager.addListener(actionListener, "get2");
         inputManager.addListener(actionListener, "get3");
+        inputManager.addListener(actionListener, "pause");
 
     }
 
@@ -624,6 +625,11 @@ public class Main extends SimpleApplication implements ScreenController {
                         physTeam.get(physTeam.size() - 1).setLinearDamping(physTeam.get(physTeam.size() - 1).getLinearDamping() - 0.005f);
                     }
                 }
+                if(name.equals("pause") && !keyPressed && unlockCommands){
+                    nifty.gotoScreen("start");
+                    unlockCommands = false;
+                    shotHasBeenSet = false;
+                }
                 //catch NullPointerExcetion errors
             } catch (NullPointerException ex) {
                 System.out.print("null");
@@ -765,9 +771,9 @@ public class Main extends SimpleApplication implements ScreenController {
 
     public void startGame(String nextScreen) {
         System.out.print("startgame");
-
         nifty.gotoScreen(nextScreen);
         dropDownList();
+        newGame();
 
     }
     
@@ -1338,6 +1344,7 @@ public void dropDownList(){
         inputManager.addMapping("get2", new KeyTrigger(KeyInput.KEY_2));
         inputManager.addMapping("get3", new KeyTrigger(KeyInput.KEY_3));
         inputManager.addMapping("damping", new KeyTrigger(KeyInput.KEY_SPACE));
+        inputManager.addMapping("pause", new KeyTrigger(KeyInput.KEY_P));
         inputManager.setMouseCursor(null);
         inputManager.setCursorVisible(true);
     }
@@ -1371,6 +1378,44 @@ public void dropDownList(){
             niftyTurn.getRenderer(TextRenderer.class).setText("Player 2's turn");
         }
         niftyTurn.enable();
+    }
+    
+    public void newGame() {
+        roundIsDone = true;
+        scoreboard.setTotalShots(0);
+        for (int i = 0; i < rockTeam1.length; i++) {
+            //remove all controls and spatials from the scene
+            rockTeam1[i].getRockModel().removeControl(controlTeam1[i]);
+            rockTeam2[i].getRockModel().removeControl(controlTeam2[i]);
+
+            bulletAppState.getPhysicsSpace().remove(controlTeam1[i]);
+            bulletAppState.getPhysicsSpace().remove(controlTeam2[i]);
+
+            rockTeam1[i].getRockModel().removeFromParent();
+            rockTeam2[i].getRockModel().removeFromParent();
+
+            //clear all arrays
+            rockTeam1[i] = null;
+            rockTeam2[i] = null;
+            distanceFromCenterTeam1[i] = 0;
+            distanceFromCenterTeam2[i] = 0;
+            controlTeam1[i] = null;
+            controlTeam2[i] = null;
+        scoreboard.setTeam1Name("Italy");
+        scoreboard.setTeam2Name("Italy");
+        scoreboard.setRound(0);
+        }
+        for (int i = 0; i < scoreboard.getNumberOfRounds(); i++) {
+            scoreboard.setTeam1RoundScore(i, 0);
+            scoreboard.setTeam2RoundScore(i, 0);
+        }
+        scoreboard.setTeam1TotalScore(0);
+        scoreboard.setTeam2TotalScore(0);
+        // randomly chose which team has the hammer
+        initialHammer = (Math.random() <= 0.5) ? 1 : 2;
+        scoreboard.setHammer(initialHammer);
+        
+
     }
 
 }

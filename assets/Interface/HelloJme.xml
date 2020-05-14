@@ -96,7 +96,7 @@
         <layer id="foreground" childLayout="vertical" width="100%" height="100%">
             <panel id="instruction window" childLayout="vertical" align="top" >
                 <control id="window-3" backgroundColor="00000"name="window" title="Rules and Controls" width="800px" height="600px" x="400px" >
-                    <text wrap="true"font="Interface/Fonts/TimesNewRoman.fnt" text="The goal of the game is to get your curling rock as close as possible to the button of the house. The button is the middle point of the house, the area determined by the coloured circles at the other extremity of the ice. Both players shot in alternance, attempting to get their rocks closest to the button. While a rock is sliding across, a player can change the velocity of his rock by pressing repeatedly on   SPACEBAR.  This will reduce the friction between the ice and the curling stone allowing the stone to go faster and farther while sliding. After both players have shot their 4 rocks, for a total of 8 rocks in play, the round, also known as the end, ends.
+                    <text wrap="true"font="Interface/Fonts/Elephant.fnt" text="The goal of the game is to get your curling rock as close as possible to the button of the house. The button is the middle point of the house, the area determined by the coloured circles at the other extremity of the ice. Both players shot in alternance, attempting to get their rocks closest to the button. While a rock is sliding across, a player can change the velocity of his rock by pressing repeatedly on   SPACEBAR.  This will reduce the friction between the ice and the curling stone allowing the stone to go faster and farther while sliding. After both players have shot their 4 rocks, for a total of 8 rocks in play, the round, also known as the end, ends.
 The player whose rock is the closest to the button earns 1 point. The same player earns additional points if he has other rocks closer to the button then his opponent's closest rock. Only rocks positioned inside the house can award points. A game lasts 10 rounds. The player who has the most points at the end of the game wins.
                        &#10;
                        &#10;
@@ -106,7 +106,7 @@ The player whose rock is the closest to the button earns 1 point. The same playe
                        &#10;
                        Brush: SPACEBAR
                        &#10;
-                       Pause: P
+                       Pause: P (to come)
                        &#10;
                        Camera angle 1: 1
                        &#10;

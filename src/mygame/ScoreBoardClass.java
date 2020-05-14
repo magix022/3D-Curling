@@ -147,6 +147,14 @@ public class ScoreBoardClass {
     public void setHammer(int hammer) {
         this.hammer = hammer;
     }
+    
+    public void setTeam1TotalScore(int team1TotalScore) {
+        this.team1TotalScore = team1TotalScore;
+    }
+
+    public void setTeam2TotalScore(int team2TotalScore) {
+        this.team2TotalScore = team2TotalScore;
+    }
 
     //obtain which team has the hammer at a particular round
     public int getHammer() {
