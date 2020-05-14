@@ -42,6 +42,7 @@ import com.jme3.texture.Texture;
 import de.lessvoid.nifty.Nifty;
 import de.lessvoid.nifty.NiftyEventSubscriber;
 import de.lessvoid.nifty.controls.ImageSelectSelectionChangedEvent;
+import de.lessvoid.nifty.controls.slider.SliderControl;
 import de.lessvoid.nifty.elements.Element;
 import de.lessvoid.nifty.elements.render.TextRenderer;
 import de.lessvoid.nifty.screen.Screen;
@@ -128,7 +129,7 @@ public class Main extends SimpleApplication implements ScreenController {
     //Boolean values to optimise the if statements in th simpleUpdate method
     boolean roundIsDone = true;
     boolean gameIsStarted = false;
-    boolean gameIsFinished = true;
+    boolean gameIsFinished = false;
 
     //Initialisers and default values for the GUI
     private Boolean camStatus;
@@ -148,6 +149,8 @@ public class Main extends SimpleApplication implements ScreenController {
     private AudioNode collisionSound;
     private AudioNode rockToBoard;
     private AudioNode backgroundSound;
+    
+    private Element niftyTurn;
 
     public static void main(String[] args) {
         //create Main object
@@ -170,7 +173,7 @@ public class Main extends SimpleApplication implements ScreenController {
         setSpatials();
 
         //set number of rounds
-        scoreboard.setNumberOfRounds(10);
+        scoreboard.setNumberOfRounds(1);
 
         //randomly chose which team has the hammer
         initialHammer = (Math.random() <= 0.5) ? 1 : 2;
@@ -194,7 +197,7 @@ public class Main extends SimpleApplication implements ScreenController {
         backgroundSound.setLooping(true);
         backgroundSound.setVolume(1);
         rootNode.attachChild(backgroundSound);
-        backgroundSound.play();
+//        backgroundSound.play();
 
         rockToBoard = new AudioNode(assetManager, "Sounds/thud.wav", DataType.Buffer);
         rockToBoard.setPositional(true);
@@ -233,37 +236,41 @@ public class Main extends SimpleApplication implements ScreenController {
                     shotDone.set(0, false);
                 } else if (noMouvement(physTeam) && shotDone.get(0) == true) { //create rock 1 for team 2
                     createRock(2, 0, rockTeam2, physTeam, tpf);
+                    playerTurn(2);
                     physTeam.get(physTeam.size() - 2).setLinearDamping(0.25f);
                     shotDone.set(0, false);
                 } else if (noMouvement(physTeam) && shotDone.get(1) == true) { //create rock 2 for team 1
                     createRock(1, 1, rockTeam1, physTeam, tpf);
+                    playerTurn(1);
                     physTeam.get(physTeam.size() - 2).setLinearDamping(0.25f);
                     shotDone.set(1, false);
                 } else if (noMouvement(physTeam) && shotDone.get(2) == true) { //create rock 2 for team 2
                     createRock(2, 1, rockTeam2, physTeam, tpf);
+                    playerTurn(2);
                     physTeam.get(physTeam.size() - 2).setLinearDamping(0.25f);
                     shotDone.set(2, false);
                 } else if (noMouvement(physTeam) && shotDone.get(3) == true) { //create rock 3 for team 1
                     createRock(1, 2, rockTeam1, physTeam, tpf);
+                    playerTurn(1);
                     physTeam.get(physTeam.size() - 2).setLinearDamping(0.25f);
                     shotDone.set(3, false);
                 } else if (noMouvement(physTeam) && shotDone.get(4) == true) { //create rock 3 for team 2
                     createRock(2, 2, rockTeam2, physTeam, tpf);
+                    playerTurn(2);
                     physTeam.get(physTeam.size() - 2).setLinearDamping(0.25f);
                     shotDone.set(4, false);
                 } else if (noMouvement(physTeam) && shotDone.get(5) == true) { //create rock 4 for team 1
                     createRock(1, 3, rockTeam1, physTeam, tpf);
+                    playerTurn(1);
                     physTeam.get(physTeam.size() - 2).setLinearDamping(0.25f);
                     shotDone.set(5, false);
                 } else if (noMouvement(physTeam) && shotDone.get(6) == true) { //create rock 4 for team 2
                     createRock(2, 3, rockTeam2, physTeam, tpf);
+                    playerTurn(2);
                     physTeam.get(physTeam.size() - 2).setLinearDamping(0.25f);
                     shotDone.set(6, false);
                 }
-                //update physics controls
-                for (int i = 0; i < physTeam.size(); i++) {
-                    physTeam.get(i).controlUpdate(tpf, originRockPos.getY());
-                }
+                
 
                 //if all shots have been completed and the rocks are motionless, the round is done
                 if (scoreboard.getTotalShots() == 8 && noMouvement(physTeam) && roundIsDone == true) {
@@ -285,7 +292,8 @@ public class Main extends SimpleApplication implements ScreenController {
                     displayScore();
                     roundIsDone = false;
                 }
-            } else {
+            }
+            else {
                 //***create rocks similarly as in IF block, where team2 has the hammer***
                 //case where team1 has the last shot
                 if (shotDone.get(0) == true && physTeam.isEmpty()) {
@@ -293,38 +301,41 @@ public class Main extends SimpleApplication implements ScreenController {
                     shotDone.set(0, false);
                 } else if (noMouvement(physTeam) && shotDone.get(0) == true) {
                     createRock(1, 0, rockTeam1, physTeam, tpf);
+                    playerTurn(1);
                     physTeam.get(physTeam.size() - 2).setLinearDamping(0.25f);
                     shotDone.set(0, false);
                 } else if (noMouvement(physTeam) && shotDone.get(1) == true) {
                     createRock(2, 1, rockTeam2, physTeam, tpf);
+                    playerTurn(2);
                     physTeam.get(physTeam.size() - 2).setLinearDamping(0.25f);
                     shotDone.set(1, false);
                 } else if (noMouvement(physTeam) && shotDone.get(2) == true) {
                     createRock(1, 1, rockTeam1, physTeam, tpf);
+                    playerTurn(1);
                     physTeam.get(physTeam.size() - 2).setLinearDamping(0.25f);
                     shotDone.set(2, false);
                 } else if (noMouvement(physTeam) && shotDone.get(3) == true) {
                     createRock(2, 2, rockTeam2, physTeam, tpf);
+                    playerTurn(2);
                     physTeam.get(physTeam.size() - 2).setLinearDamping(0.25f);
                     shotDone.set(3, false);
                 } else if (noMouvement(physTeam) && shotDone.get(4) == true) {
                     createRock(1, 2, rockTeam1, physTeam, tpf);
+                    playerTurn(1);
                     physTeam.get(physTeam.size() - 2).setLinearDamping(0.25f);
                     shotDone.set(4, false);
                 } else if (noMouvement(physTeam) && shotDone.get(5) == true) {
                     createRock(2, 3, rockTeam2, physTeam, tpf);
+                    playerTurn(2);
                     physTeam.get(physTeam.size() - 2).setLinearDamping(0.25f);
                     shotDone.set(5, false);
                 } else if (noMouvement(physTeam) && shotDone.get(6) == true) {
                     createRock(1, 3, rockTeam1, physTeam, tpf);
+                    playerTurn(1);
                     physTeam.get(physTeam.size() - 2).setLinearDamping(0.25f);
                     shotDone.set(6, false);
                 }
-                for (int i = 0; i < physTeam.size(); i++) {
-                    physTeam.get(i).controlUpdate(tpf, originRockPos.getY());
-                    physTeam.get(i).prePhysicsTick(bulletAppState.getPhysicsSpace(), tpf);
-                    physTeam.get(i).physicsTick(bulletAppState.getPhysicsSpace(), tpf);
-                }
+                
                 //***same as in previous IF block, when team2 has the hammer***
                 if (scoreboard.getTotalShots() == 8 && noMouvement(physTeam) && roundIsDone == true) {
                     for (int i = 0, j = 0; i < physTeam.size() && j < 4; i += 2, j++) {
@@ -341,6 +352,28 @@ public class Main extends SimpleApplication implements ScreenController {
                 }
             }
 
+
+
+        } 
+        else {
+            gameIsFinished = true;
+            //when game is finished, display final score
+            if (gameIsFinished) {
+                System.out.println("Game is finished");
+                System.out.println("The final score is");
+                System.out.println("Team 1: " + scoreboard.getTeam1TotalScore() + "\tTeam 2: " + scoreboard.getTeam2TotalScore() + "\n");
+                System.out.println(scoreboard.getGameWinner());
+
+                
+            }
+        }
+        
+        for (int i = 0; i < physTeam.size(); i++) {
+            physTeam.get(i).controlUpdate(tpf, originRockPos.getY());
+            physTeam.get(i).prePhysicsTick(bulletAppState.getPhysicsSpace(), tpf);
+            physTeam.get(i).physicsTick(bulletAppState.getPhysicsSpace(), tpf);
+        }
+        
             //update rock velocity value
             updateVelocityValue();
 
@@ -357,9 +390,14 @@ public class Main extends SimpleApplication implements ScreenController {
             arrowGeo.setLocalRotation(arrowRotation);
             arrowGeo.setLocalScale(velocityY / 20);
 
-            //set particular cam location
-            rockCamLocation = physTeam.get(physTeam.size() - 1).getPhysicsLocation().add(15, 5, 0);
-
+            if(physTeam.size()>0){
+                //set particular cam location
+                rockCamLocation = physTeam.get(physTeam.size() - 1).getPhysicsLocation().add(15, 5, 0);
+                if (physTeam.get(physTeam.size() - 1).getLinearDamping() < 0.20f) {
+                    physTeam.get(physTeam.size() - 1).setLinearDamping(physTeam.get(physTeam.size() - 1).getLinearDamping() + 0.00015f);
+                }
+            }
+            
             //set direction and position of alternate camera angle1
             if (!alternateCamAngle) {
                 cam.setLocation(rockCamLocation);
@@ -367,9 +405,7 @@ public class Main extends SimpleApplication implements ScreenController {
             }
 
             //arrange rock friction when there is no brushing
-            if (physTeam.get(physTeam.size() - 1).getLinearDamping() < 0.20f) {
-                physTeam.get(physTeam.size() - 1).setLinearDamping(physTeam.get(physTeam.size() - 1).getLinearDamping() + 0.00015f);
-            }
+            
 
             //listener for in-game the mouse and keyboard actions
             inputManager.addListener(actionListener, "throw");
@@ -379,18 +415,6 @@ public class Main extends SimpleApplication implements ScreenController {
             inputManager.addListener(actionListener, "get1");
             inputManager.addListener(actionListener, "get2");
             inputManager.addListener(actionListener, "get3");
-
-        } else {
-            //when game is finished, display final score
-            if (gameIsFinished) {
-                System.out.println("Game is finished");
-                System.out.println("The final score is");
-                System.out.println("Team 1: " + scoreboard.getTeam1TotalScore() + "\tTeam 2: " + scoreboard.getTeam2TotalScore() + "\n");
-                System.out.println(scoreboard.getGameWinner());
-
-                gameIsFinished = false;
-            }
-        }
 
     }
 
@@ -554,7 +578,12 @@ public class Main extends SimpleApplication implements ScreenController {
             try {
                 //pressing ENTER after a round will call resetRound() method to clear the scene, update score and skip to next round
                 if (name.equals("resetRound") && !keyPressed && scoreboard.getTotalShots() == 8 && noMouvement(physTeam)) {
-                    resetRound();
+                    if(!gameIsFinished){
+                        resetRound();
+                    }
+                    else{
+                        nifty.gotoScreen("start");
+                    }
                 }
                 //setting arrow control for power and aim of the throw
                 if (name.equals("throw") && keyPressed && unlockCommands) {
@@ -591,7 +620,7 @@ public class Main extends SimpleApplication implements ScreenController {
                 if (name.equals("get2") && !keyPressed) {
                     alternateCamAngle = false;
                 }
-                //pressing 3 will switch to alternate camera angle 2
+                //pressing 3 will switch to alternate camera angle 3
                 if (name.equals("get3") && keyPressed) {
                     cam.setLocation(new Vector3f(67.61219f, 18.359352f, -56.51864f));
                     cam.lookAtDirection(new Vector3f(-0.904703f, -0.17295352f, 0.38940513f), new Vector3f(0, 1, 0));
@@ -760,6 +789,13 @@ public class Main extends SimpleApplication implements ScreenController {
         scoreTeam1();
         scoreTeam2();
         gameIsStarted = true;
+        
+        if(scoreboard.getHammer() == 2){
+            playerTurn(1);
+        }
+        else{
+            playerTurn(2);
+        }
 
     }
 
@@ -1256,5 +1292,21 @@ public class Main extends SimpleApplication implements ScreenController {
 
         //attaching spatials to rootNode
         rootNode.attachChild(floorScene);
+        
+        
     }
+    
+    public void playerTurn(int team){
+        niftyTurn = nifty.getScreen("hud").findElementById("playerTurnText");
+        niftyTurn.disable();
+        if(team == 1){
+            niftyTurn.getRenderer(TextRenderer.class).setText("Player 1's turn");
+        }
+        else{
+            niftyTurn.getRenderer(TextRenderer.class).setText("Player 2's turn");
+        }
+        niftyTurn.enable();
+    }
+    
+    
 }
