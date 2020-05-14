@@ -102,7 +102,10 @@ public class Main extends SimpleApplication implements ScreenController {
     private double[] distanceFromCenterTeam2 = new double[4];
     private YLockControl[] controlTeam1 = new YLockControl[4];
     private YLockControl[] controlTeam2 = new YLockControl[4];
-    int initialHammer;
+    private int initialHammer;
+    private int ENTERIsPressed = 0;
+    private int temp = 0;
+    private boolean isDone = true;
 
     //ArrayList of YLockControl to add elements at the end of the physics array
     ArrayList<YLockControl> physTeam = new ArrayList();
@@ -149,7 +152,7 @@ public class Main extends SimpleApplication implements ScreenController {
     private AudioNode collisionSound;
     private AudioNode rockToBoard;
     private AudioNode backgroundSound;
-    
+
     private Element niftyTurn;
 
     public static void main(String[] args) {
@@ -173,7 +176,7 @@ public class Main extends SimpleApplication implements ScreenController {
         setSpatials();
 
         //set number of rounds
-        scoreboard.setNumberOfRounds(1);
+        scoreboard.setNumberOfRounds(2);
 
         //randomly chose which team has the hammer
         initialHammer = (Math.random() <= 0.5) ? 1 : 2;
@@ -226,6 +229,16 @@ public class Main extends SimpleApplication implements ScreenController {
             scoreTeam2();
         }
 
+        if (physTeam.size() > 0) {
+            //set particular cam location
+            rockCamLocation = physTeam.get(physTeam.size() - 1).getPhysicsLocation().add(15, 5, 0);
+            //set direction and position of alternate camera angle1
+            if (!alternateCamAngle) {
+                cam.setLocation(rockCamLocation);
+                cam.lookAtDirection(new Vector3f(-1, -0.3f, 0), new Vector3f(0, 1, 0));
+            }
+        }
+
         //check if there are still rounds to be played
         if (scoreboard.getRound() < scoreboard.getNumberOfRounds()) {
             //check which team has the hammer (the last shot)
@@ -270,7 +283,6 @@ public class Main extends SimpleApplication implements ScreenController {
                     physTeam.get(physTeam.size() - 2).setLinearDamping(0.25f);
                     shotDone.set(6, false);
                 }
-                
 
                 //if all shots have been completed and the rocks are motionless, the round is done
                 if (scoreboard.getTotalShots() == 8 && noMouvement(physTeam) && roundIsDone == true) {
@@ -292,8 +304,7 @@ public class Main extends SimpleApplication implements ScreenController {
                     displayScore();
                     roundIsDone = false;
                 }
-            }
-            else {
+            } else {
                 //***create rocks similarly as in IF block, where team2 has the hammer***
                 //case where team1 has the last shot
                 if (shotDone.get(0) == true && physTeam.isEmpty()) {
@@ -335,7 +346,7 @@ public class Main extends SimpleApplication implements ScreenController {
                     physTeam.get(physTeam.size() - 2).setLinearDamping(0.25f);
                     shotDone.set(6, false);
                 }
-                
+
                 //***same as in previous IF block, when team2 has the hammer***
                 if (scoreboard.getTotalShots() == 8 && noMouvement(physTeam) && roundIsDone == true) {
                     for (int i = 0, j = 0; i < physTeam.size() && j < 4; i += 2, j++) {
@@ -351,29 +362,6 @@ public class Main extends SimpleApplication implements ScreenController {
                     roundIsDone = false;
                 }
             }
-
-
-
-        } 
-        else {
-            gameIsFinished = true;
-            //when game is finished, display final score
-            if (gameIsFinished) {
-                System.out.println("Game is finished");
-                System.out.println("The final score is");
-                System.out.println("Team 1: " + scoreboard.getTeam1TotalScore() + "\tTeam 2: " + scoreboard.getTeam2TotalScore() + "\n");
-                System.out.println(scoreboard.getGameWinner());
-
-                
-            }
-        }
-        
-        for (int i = 0; i < physTeam.size(); i++) {
-            physTeam.get(i).controlUpdate(tpf, originRockPos.getY());
-            physTeam.get(i).prePhysicsTick(bulletAppState.getPhysicsSpace(), tpf);
-            physTeam.get(i).physicsTick(bulletAppState.getPhysicsSpace(), tpf);
-        }
-        
             //update rock velocity value
             updateVelocityValue();
 
@@ -390,34 +378,29 @@ public class Main extends SimpleApplication implements ScreenController {
             arrowGeo.setLocalRotation(arrowRotation);
             arrowGeo.setLocalScale(velocityY / 20);
 
-            if(physTeam.size()>0){
-                //set particular cam location
-                rockCamLocation = physTeam.get(physTeam.size() - 1).getPhysicsLocation().add(15, 5, 0);
-                if (physTeam.get(physTeam.size() - 1).getLinearDamping() < 0.20f) {
-                    physTeam.get(physTeam.size() - 1).setLinearDamping(physTeam.get(physTeam.size() - 1).getLinearDamping() + 0.00015f);
-                }
-            }
-            
-            //set direction and position of alternate camera angle1
-            if (!alternateCamAngle) {
-                cam.setLocation(rockCamLocation);
-                cam.lookAtDirection(new Vector3f(-1, -0.3f, 0), new Vector3f(0, 1, 0));
-            }
+        } else {
+            //when game is finished, display final score
+            unlockCommands = false;
+            showEndOfRoundMessage();
+        }
 
-            //arrange rock friction when there is no brushing
-            
+        for (int i = 0; i < physTeam.size(); i++) {
+            physTeam.get(i).controlUpdate(tpf, originRockPos.getY());
+            physTeam.get(i).prePhysicsTick(bulletAppState.getPhysicsSpace(), tpf);
+            physTeam.get(i).physicsTick(bulletAppState.getPhysicsSpace(), tpf);
+        }
 
-            //listener for in-game the mouse and keyboard actions
-            inputManager.addListener(actionListener, "throw");
-            inputManager.addListener(actionListener, "stop");
-            inputManager.addListener(actionListener, "resetRound");
-            inputManager.addListener(actionListener, "damping");
-            inputManager.addListener(actionListener, "get1");
-            inputManager.addListener(actionListener, "get2");
-            inputManager.addListener(actionListener, "get3");
+        //arrange rock friction when there is no brushing
+        //listener for in-game the mouse and keyboard actions
+        inputManager.addListener(actionListener, "throw");
+        inputManager.addListener(actionListener, "stop");
+        inputManager.addListener(actionListener, "resetRound");
+        inputManager.addListener(actionListener, "damping");
+        inputManager.addListener(actionListener, "get1");
+        inputManager.addListener(actionListener, "get2");
+        inputManager.addListener(actionListener, "get3");
 
     }
-
 
     /*call distance from center method for every curling rock and attribute 
     the value to a array of double values*/
@@ -577,13 +560,9 @@ public class Main extends SimpleApplication implements ScreenController {
         public void onAction(String name, boolean keyPressed, float tpf) {
             try {
                 //pressing ENTER after a round will call resetRound() method to clear the scene, update score and skip to next round
-                if (name.equals("resetRound") && !keyPressed && scoreboard.getTotalShots() == 8 && noMouvement(physTeam)) {
-                    if(!gameIsFinished){
-                        resetRound();
-                    }
-                    else{
-                        nifty.gotoScreen("start");
-                    }
+                if (name.equals("resetRound") && !keyPressed && scoreboard.getTotalShots() == 8 && noMouvement(physTeam) && unlockCommands) {
+                    resetRound();
+                    ENTERIsPressed++;
                 }
                 //setting arrow control for power and aim of the throw
                 if (name.equals("throw") && keyPressed && unlockCommands) {
@@ -620,7 +599,7 @@ public class Main extends SimpleApplication implements ScreenController {
                 if (name.equals("get2") && !keyPressed) {
                     alternateCamAngle = false;
                 }
-                //pressing 3 will switch to alternate camera angle 3
+                //pressing 3 will switch to alternate camera angle 2
                 if (name.equals("get3") && keyPressed) {
                     cam.setLocation(new Vector3f(67.61219f, 18.359352f, -56.51864f));
                     cam.lookAtDirection(new Vector3f(-0.904703f, -0.17295352f, 0.38940513f), new Vector3f(0, 1, 0));
@@ -631,12 +610,11 @@ public class Main extends SimpleApplication implements ScreenController {
                     alternateCamAngle = false;
                 }
                 //pessing SPACEBAR will reduce friction between ice and rock when sliding
-                if (name.equals("damping") && !keyPressed) {
+                if (name.equals("damping") && !keyPressed && unlockCommands) {
                     if (physTeam.get(physTeam.size() - 1).getLinearDamping() > 0.17f) {
                         physTeam.get(physTeam.size() - 1).setLinearDamping(physTeam.get(physTeam.size() - 1).getLinearDamping() - 0.005f);
                     }
                 }
-
                 //catch NullPointerExcetion errors
             } catch (NullPointerException ex) {
                 System.out.print("null");
@@ -715,6 +693,7 @@ public class Main extends SimpleApplication implements ScreenController {
         //simpleRender method, not used
     }
 
+ 
     //reset all variables for following round, when SPACEBAR is pressed after each round
     private void resetRound() {
         //reset values
@@ -747,9 +726,11 @@ public class Main extends SimpleApplication implements ScreenController {
         Collections.fill(shotDone, Boolean.FALSE);
         shotDone.set(0, true);
         //update round number showed on hud screen
-        updateRoundDisplayed();
-        updateHammer();
-        discardEndOfRoundMessage();
+        if (scoreboard.getRound() < scoreboard.getNumberOfRounds()) {
+            updateRoundDisplayed();
+            updateHammer();
+            discardEndOfRoundMessage();
+        }
     }
 
     @Override
@@ -789,11 +770,10 @@ public class Main extends SimpleApplication implements ScreenController {
         scoreTeam1();
         scoreTeam2();
         gameIsStarted = true;
-        
-        if(scoreboard.getHammer() == 2){
+
+        if (scoreboard.getHammer() == 2) {
             playerTurn(1);
-        }
-        else{
+        } else {
             playerTurn(2);
         }
 
@@ -973,17 +953,35 @@ public class Main extends SimpleApplication implements ScreenController {
         }
     }
 
-    //show end of round message
+   //show end of round message
     public void showEndOfRoundMessage() {
         //check if the game is finished
-        if (scoreboard.getRound() < scoreboard.getNumberOfRounds()) {
+        if (scoreboard.getRound() < (scoreboard.getNumberOfRounds() - 1)) {
             // find old text
             Element niftyElement = nifty.getScreen("hud").findElementById("pressEnter");
             // swap old with new text
-            niftyElement.getRenderer(TextRenderer.class).setText(scoreboard.getRoundWinner() + "\n\nPress ENTER to begin next round");
-        } else {
-            //if the game is finished, display the game winner
-            //print: setText(scoreboard.getGameWinner)
+            niftyElement.getRenderer(TextRenderer.class).setText(scoreboard.getRoundWinner() + "\nPress 1, 2 or 3 to view the final rock placement"
+                    + "\n\nPress ENTER to begin next round");
+        } else if (isDone) {
+            // find old text
+            Element niftyElement = nifty.getScreen("hud").findElementById("pressEnter");
+            niftyElement.getRenderer(TextRenderer.class).setText("");
+            // swap old with new text
+            niftyElement.getRenderer(TextRenderer.class).setText(scoreboard.getRoundWinner() + "\nPress 1, 2 or 3 to view the final rock placement"
+                    + "\n\nPress ENTER to finish the game");
+            isDone = false;
+            temp = ENTERIsPressed;
+
+        } else if (!isDone && (ENTERIsPressed > temp)) {
+            cam.setLocation(new Vector3f(67.61219f, 18.359352f, -56.51864f));
+            cam.lookAtDirection(new Vector3f(-0.904703f, -0.17295352f, 0.38940513f), new Vector3f(0, 1, 0));
+            alternateCamAngle = true;
+            flyCam.setEnabled(false);
+            // find old text
+            Element niftyElement = nifty.getScreen("hud").findElementById("pressEnter");
+            // swap old with new text
+            niftyElement.getRenderer(TextRenderer.class).setText("");
+            niftyElement.getRenderer(TextRenderer.class).setText(scoreboard.getGameWinner());
         }
     }
 
@@ -1292,21 +1290,18 @@ public class Main extends SimpleApplication implements ScreenController {
 
         //attaching spatials to rootNode
         rootNode.attachChild(floorScene);
-        
-        
+
     }
-    
-    public void playerTurn(int team){
+
+    public void playerTurn(int team) {
         niftyTurn = nifty.getScreen("hud").findElementById("playerTurnText");
         niftyTurn.disable();
-        if(team == 1){
+        if (team == 1) {
             niftyTurn.getRenderer(TextRenderer.class).setText("Player 1's turn");
-        }
-        else{
+        } else {
             niftyTurn.getRenderer(TextRenderer.class).setText("Player 2's turn");
         }
         niftyTurn.enable();
     }
-    
-    
+
 }
